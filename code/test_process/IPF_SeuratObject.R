@@ -1,0 +1,38 @@
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+```
+
+```{r}
+ild_data <- Read10X(here('data/GSE135893_IPF_1/GSE135893_seurat/'), gene.column = 1)
+
+
+ild <- CreateSeuratObject(ild_data,
+                          project = "scRNA_lung", # 이렇게 변경은 하고 아직 run은 돌리지 않음 
+                          min.features = 200)
+
+
+metadata <- read_csv("metadata.csv")
+ild <- AddMetaData(ild, rownames(ild@meta.data), col.name = "cellbarcodes")
+ild <- subset(x = ild, subset = cellbarcodes %in% metadata$cellbarcodes)
+cells <- ild@meta.data
+cells <- cells %>% left_join(metadata %>% select(Diagnosis, Sample_Name, Sample_Source, Status, celltype, population, cellbarcodes), by = "cellbarcodes")
+
+ild <- AddMetaData(ild, cells$Diagnosis, col.name = "Diagnosis")
+ild <- AddMetaData(ild, cells$Sample_Name, col.name = "Sample_Name")
+ild <- AddMetaData(ild, cells$Sample_Source, col.name = "Sample_Source")
+ild <- AddMetaData(ild, cells$Status, col.name = "Status")
+ild <- AddMetaData(ild, cells$celltype, col.name = "celltype")
+ild <- AddMetaData(ild, cells$population, col.name = "population")
+
+head(ild)
+saveRDS(ild, file = "IPF_SeuratObject.RDS")
+````

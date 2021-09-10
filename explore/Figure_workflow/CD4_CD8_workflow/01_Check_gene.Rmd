@@ -1,0 +1,45 @@
+---
+title: "01_Check_gene"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(Seurat)
+library(here)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+```
+
+```{r}
+FeaturePlot(refquery, features = c("TNF"), raster = FALSE)
+```
+
+```{r}
+FeaturePlot(refquery, features = c("TNF",
+                                   "IL-4",
+                                   "IL-13",
+                                   "IL-5",
+                                   "IL-17A",
+                                   "IL-17F",
+                                   "IL-22",
+                                   "IL-21",
+                                   "IL-4",
+                                   "IL-10",
+                                   "IL-10",
+                                   "IL-35",
+                                   "IL-13"), raster = FALSE)
+
+```
+
+
+
+
+
+
+
+
+
+

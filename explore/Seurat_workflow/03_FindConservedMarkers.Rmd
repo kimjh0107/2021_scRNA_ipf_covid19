@@ -1,0 +1,49 @@
+---
+title: "03_FindConservedMarkers"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/04_Integrate_fill_null.RDS'))
+head(refquery)
+```
+
+# FindConservedMarkers
+```{r}
+unique(refquery$integrated_snn_res.0.8)
+unique(refquery$Diagnosis)
+
+```
+
+# R studio말고 R script에서 실행하기!
+```{r}
+markers_list <- list()
+
+find_conserved_markers <- function(ident.1){
+  DefaultAssay(refquery) <- "RNA"
+  assign(paste0("markers",as.character(ident.1)), FindConservedMarkers(refquery, ident.1 = ident.1,  grouping.var = "Diagnosis", verbose = TRUE))
+  # alveolar_markers_list[[ident.1]] <- FindConservedMarkers(refquery, ident.1 = ident.1,  grouping.var = "Diagnosis", verbose = FALSE)
+}
+
+
+0:34 %>% purrr::map(find_conserved_markers)
+
+```
+
+
+

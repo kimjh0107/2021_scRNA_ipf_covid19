@@ -1,0 +1,44 @@
+---
+title: "COVID_Preprocessing"
+output: html_document
+output: github_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+```
+
+```{r}
+covid <- readRDS(here('explore/COVID_h5_to_SeuratObject_merge.RDS'))
+head(covid)
+```
+
+```{r}
+# QC control
+covid <- PercentageFeatureSet(object = covid, pattern = "^MT-", col.name = "percent.mt")
+covid <- subset(covid, subset = nFeature_RNA > 1000 & percent.mt < 25)
+covid <- SCTransform(covid, method = "glmGamPoi", vars.to.regress = "percent.mt", verbose = FALSE)
+```
+
+```{r}
+head(covid)
+```
+
+```{r}
+saveRDS(ild, file = "COVID_Preprocessing.RDS")
+```
+
+
+
+
+
+

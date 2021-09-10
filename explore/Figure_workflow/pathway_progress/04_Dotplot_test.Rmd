@@ -1,0 +1,99 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+```{r}
+pathway <- readRDS(here('explore/RDS/pathway/pathway_newc_columns.RDS'))
+```
+
+subset(x = pbmc, subset = orig.ident == "Replicate1")
+
+```{r}
+unique(pathway$Diagnosis)
+pathway <- subset(pathway, subset = Diagnosis == "COVID" | Diagnosis == "IPF" )
+```
+
+
+```{r}
+Idents(pathway)
+```
+
+```{r}
+unique(pathway$cell_type_submain)
+```
+
+
+```{r}
+pathway <- RenameIdents(pathway, 
+                        "0" = 'AT2',
+                        "1" = "Monocyte",
+                        "10" = "Vein Cell",
+                        "11" = "M2 Macrophage",
+                        "12" = "NK Cell",
+                        "13" = "Ciliated Cell",
+                        "14" = "Club Cell",
+                        "15" = "mDCs",
+                        "16" = "B Cell",
+                        "17" = "M1 Macrophage",
+                        "18" = "AT1",
+                        "19" = "Artery Cell",
+                        "2" = "Adventitial Fibroblasts",
+                        "20" = "Lymphatic Cell",
+                        "21" = "Basal Cell",
+                        "22" = "Plasma Cell",
+                        "23" = "Mesothelial Cell",
+                        "24" = "Capillary Cell",
+                        "25" = "Gobelt Cel",
+                        "26" = "CD4 Tcell",
+                        "27" = "Myofibroblasts",
+                        "28" = "Mast Cell",
+                        "29" = "Airway smooth muscle",
+                        "3" = "Pathological Fibroblasts",
+                        "30" = "CD8 Tcell",
+                        "31" = "Alveolar Fibroblasts",
+                        "32" = "Vascular smooth muscle",
+                        "33" = "pDCs",
+                        "34" = "Lipo Fibroblasts",
+                        "4" = "Neutrophil",
+                        "5" = "a",
+                        "6" = "b",
+                        "7" = "c",
+                        "8" = "d",
+                        "9" = "e"
+                        )
+```
+
+```{r}
+levels(pathway)
+```
+```{r}
+genes_list <- c(
+'BMP2',
+'BMP5',
+'COMP',
+'CAMK2B',
+'CCND1',
+'CCND2',
+'HES1',
+'PSENEN'
+)
+```
+
+
+```{r}
+DotPlot(pathway, features = genes_list,  dot.scale = 5,cols = c("blue", "red"),  split.by = "Diagnosis") +
+    RotatedAxis()
+```
+

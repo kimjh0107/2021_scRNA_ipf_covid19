@@ -1,0 +1,135 @@
+---
+title: "07_Only_Fibrosis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(slingshot)
+library(BUSpaRse)
+library(tidyverse)
+library(tidymodels)
+library(Seurat)
+library(scales)
+library(viridis)
+library(Matrix)
+library(SingleCellExperiment)
+library(here)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+```
+
+# Fibroblast 군들에 대해서만 가져오기 -> mesenchymal
+```{r}
+fibrosis <- subset(x = refquery, subset = cell_type_main == "Mesenchymal cells")
+unique(fibrosis$cell_type_submain)
+```
+
+```{r}
+fibrosis <- ScaleData(object = fibrosis)
+fibrosis <- RunPCA(object = fibrosis)
+fibrosis <- FindNeighbors(fibrosis, dims = 1:30)
+fibrosis <- FindClusters(fibrosis)
+fibrosis <- RunUMAP(object = fibrosis, dims = 1:30)
+```
+
+```{r}
+DimPlot(fibrosis, group.by = "seurat_clusters", label = TRUE)
+DimPlot(fibrosis, group.by = "cell_type_submain", label = TRUE, repel = TRUE, label.size = 3)
+```
+
+
+# Convert to SingleCellExperiment
+```{r}
+sub_sce <- as.SingleCellExperiment(fibrosis, assay = "RNA")
+
+onion <- sub_sce@int_colData$reducedDims@listData$PCA[,1:20]
+sub_sce@int_colData$reducedDims@listData$PCA <- onion
+
+# Remove mitochondria and ribosomal genes
+temp <- grep( "^MT-", rownames(sub_sce), ignore.case = F, value = T) 
+sub_sce <- sub_sce[!rownames(sub_sce) %in% temp,]
+temp2 <- grep( "^RP", rownames(sub_sce), ignore.case = F, value = T) 
+sub_sce <- sub_sce[!rownames(sub_sce) %in% temp2,] 
+                
+# Run Slingshot
+sub_slingshot <- slingshot(sub_sce, clusterLabels = "seurat_clusters", reducedDim = 'UMAP',
+                           start.clus="11", end.clus = "6")
+summary(sub_slingshot$slingPseudotime_1)
+print(SlingshotDataSet(sub_slingshot))
+```
+
+```{r}
+unique(fibrosis$cell_type_submain)
+```
+
+```{r}
+
+epi_color <- as.character(fibrosis@meta.data$cell_type_submain)
+epi_color <- setNames(epi_color, rownames(fibrosis@meta.data))
+
+onion <- epi_color
+onion[onion == "Adventitial Fibroblasts"] <- "#EE4242"
+onion[onion == "Mesothelial Cell"] <- "#EEB542"
+onion[onion == "Myofibroblasts"] <- "#DDEE42"
+onion[onion == "Airway smooth muscle"] <- "#E8EE42"
+onion[onion == "Pathological Fibroblasts"] <- "#B5EE42"
+onion[onion == "Mesothelial Cell"] <- "#42EE5C"
+onion[onion == "Alveolar Fibroblasts"] <- "#42EEC9"
+onion[onion == "Myofibroblasts"] <- "#42ACEE"
+onion[onion == "Vascular smooth muscle"] <- "#5642EE"
+onion[onion == "Lipo Fibroblasts"] <- "#B242EE"
+
+
+epi_color <- onion
+```
+
+```{r}
+plot(reducedDims(sub_slingshot)$UMAP, col = epi_color,
+     pch = 16, asp = 1, xlab = "UMAP_1", ylab = "UMAP_2", cex=0.6)   
+legend(par(xpd = T), x= "topleft", pch = c(20), 
+       legend = c("Adventitial Fibroblasts", "Mesothelial Cell", "Myofibroblasts", "Airway smooth muscle", "Pathological Fibroblasts", "Mesothelial Cell", "Alveolar Fibroblasts", "Myofibroblasts", "Vascular smooth muscle", "Lipo Fibroblats"), 
+       col = c("#EE4242", "#EEB542", "#DDEE42", "#E8EE42", "#B5EE42", "#42EE5C", "#42EEC9", "#42ACEE", "#5642EE", "#B242EE"), bty = 'n')
+#lines(SlingshotDataSet(sub_slingshot)$Lineage3, lwd = 2, col = 'black')
+lines(slingCurves(sub_slingshot)$Lineage1, lwd=3, col = 'black')
+          
+# Save lineage
+#umap_lineage <- sub_slingshot$slingPseudotime_1
+#umap_lineage <- colnames(sub_slingshot)
+
+#ggsave(here("figure/Trajectory_work/line_UMAP_by_Lineage7.pdf"))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

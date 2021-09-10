@@ -1,0 +1,90 @@
+---
+title: "01_Subset_M1_M2"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(Seurat)
+library(here)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+```
+
+```{r}
+unique(refquery$cell_type_submain)
+
+Macrophage <- subset(x = refquery, subset = cell_type_submain == "M1 Macrophage" | cell_type_submain == "M2 Macrophage")
+unique(Macrophage$cell_type_submain)
+```
+
+```{r}
+DimPlot(Macrophage, group.by = "seurat_clusters", label = TRUE)
+DimPlot(Macrophage, group.by = "cell_type_submain", label = TRUE)
+```
+
+```{r}
+refquery2 <- readRDS(here('explore/RDS/06_Immune_celltype.RDS'))
+```
+
+```{r}
+head(refquery2)
+unique(refquery2$cell_type_submain)
+
+Macrophage_2 <- subset(x = refquery2, subset = cell_type_submain == "M1 Macrophage" | cell_type_submain == "M2 Macrophage")
+unique(Macrophage_2$cell_type_submain)
+```
+
+```{r}
+DimPlot(Macrophage_2, group.by = "seurat_clusters", label = TRUE)
+DimPlot(Macrophage_2, group.by = "cell_type_submain", label = TRUE)
+```
+
+# M1 Macrophage : 16
+# M2 Macrophage : 0, 2, 3, 6, 9, 12, 14, 17, 21
+
+```{r}
+Macrophage_2@meta.data$new_submain <- ifelse(Macrophage_2@meta.data$seurat_clusters %in% c(16), "M1_1", "NA")
+
+Macrophage_2@meta.data$new_submain <- ifelse(Macrophage_2@meta.data$seurat_clusters %in% c(0), "M2_1", Macrophage_2@meta.data$new_submain)
+Macrophage_2@meta.data$new_submain <- ifelse(Macrophage_2@meta.data$seurat_clusters %in% c(2), "M2_2", Macrophage_2@meta.data$new_submain)
+Macrophage_2@meta.data$new_submain <- ifelse(Macrophage_2@meta.data$seurat_clusters %in% c(3), "M2_3", Macrophage_2@meta.data$new_submain)
+Macrophage_2@meta.data$new_submain <- ifelse(Macrophage_2@meta.data$seurat_clusters %in% c(6), "M2_4", Macrophage_2@meta.data$new_submain)
+Macrophage_2@meta.data$new_submain <- ifelse(Macrophage_2@meta.data$seurat_clusters %in% c(9), "M2_5", Macrophage_2@meta.data$new_submain)
+Macrophage_2@meta.data$new_submain <- ifelse(Macrophage_2@meta.data$seurat_clusters %in% c(12), "M2_6", Macrophage_2@meta.data$new_submain)
+Macrophage_2@meta.data$new_submain <- ifelse(Macrophage_2@meta.data$seurat_clusters %in% c(14), "M2_7", Macrophage_2@meta.data$new_submain)
+Macrophage_2@meta.data$new_submain <- ifelse(Macrophage_2@meta.data$seurat_clusters %in% c(17), "M2_8", Macrophage_2@meta.data$new_submain)
+Macrophage_2@meta.data$new_submain <- ifelse(Macrophage_2@meta.data$seurat_clusters %in% c(21), "M2_9", Macrophage_2@meta.data$new_submain)
+
+DimPlot(Macrophage_2, group.by = "new_submain", label = TRUE)
+```
+
+```{r}
+Macrophage_markers <- FindAllMarkers(Macrophage_2,only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+```
+
+
+
+```{r}
+Macrophage <- saveRDS(Macrophage_2, file = "Macrophage_2.RDS")
+
+write.csv(Macrophage_markers, "Macrophage_specific_findallmarkers.csv")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

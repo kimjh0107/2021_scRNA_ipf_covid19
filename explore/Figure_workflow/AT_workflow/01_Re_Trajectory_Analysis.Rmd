@@ -1,0 +1,66 @@
+---
+title: "01_Re_Trajectory_Analysis"
+output: html_document
+---
+
+```{r}
+library(slingshot)
+library(BUSpaRse)
+library(tidyverse)
+library(tidymodels)
+library(Seurat)
+library(scales)
+library(viridis)
+library(Matrix)
+library(SingleCellExperiment)
+library(here)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+fig3 <- subset(x = refquery, subset = cell_type_submain == "AT2" | cell_type_submain == "AT1")
+unique(fig3$cell_type_submain)
+```
+
+```{r}
+unique(fig3$seurat_clusters)
+```
+
+
+```{r}
+DimPlot(fig3, group.by = "seurat_clusters", label = TRUE)
+DimPlot(fig3, group.by = "cell_type_submain", label = TRUE)
+```
+
+# Convert to SingleCellExperiment
+```{r}
+sub_sce <- as.SingleCellExperiment(fig3, assay = "RNA")
+
+                
+# Run Slingshot
+sub_slingshot <- slingshot(sub_sce, clusterLabels = "seurat_clusters", reducedDim = 'UMAP',
+                           start.clus="22")
+summary(sub_slingshot$slingPseudotime_1)
+print(SlingshotDataSet(sub_slingshot))
+```
+
+```{r}
+
+epi_color <- as.character(fig3@meta.data$cell_type_submain)
+epi_color <- setNames(epi_color, rownames(fig3@meta.data))
+
+onion <- epi_color
+onion[onion == "AT2"] <- "#EE7342"
+onion[onion == "AT1"] <- "#548BC5"
+epi_color <- onion
+
+plot(reducedDims(sub_slingshot)$UMAP, col = epi_color,
+     pch = 16, asp = 1, xlab = "UMAP_1", ylab = "UMAP_2", cex=0.6)   
+legend(par(xpd = T), x= "topleft", pch = c(20), 
+       legend = c("AT2","AT1"), 
+       col = c("#EE7342","#548BC5"), bty = 'n')
+lines(SlingshotDataSet(sub_slingshot), lwd = 2, col = 'black')
+
+```
+
+

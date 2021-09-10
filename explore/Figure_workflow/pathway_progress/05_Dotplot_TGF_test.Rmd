@@ -1,0 +1,119 @@
+---
+title: "04_Dotplot_TGB"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+```{r}
+refquery <- readRDS(here("explore/RDS/07_df.RDS"))
+head(refquery)
+```
+
+```{r}
+unique(refquery$Diagnosis)
+```
+
+
+# covid IPF data만 추출 
+```{r}
+refquery <- subset(x = refquery, subset = Diagnosis == "IPF" | Diagnosis == "COVID")
+```
+
+```{r}
+Idents(refquery)
+```
+
+```{r}
+unique(refquery$cell_type_submain)
+```
+
+
+35 Levels: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 ... 34
+
+```{r}
+Idents(refquery) <- "cell_type_submain"
+```
+
+```{r}
+genes_list <- c(
+'BMP2',
+'BMP5',
+'COMP',
+'DCN',
+'FST',
+'ID1',
+'ID3',
+'ID4',
+'IFNG',
+'INHBA',
+'LTBP1',
+'MYC',
+'SMAD6',
+'THBS1',
+'THBS2',
+'THBS4',
+'TNF'
+)
+
+pathway_name <- c(
+'TGF-B',
+'TGF-B',
+'TGF-B',
+'TGF-B',
+'TGF-B',
+'TGF-B',
+'TGF-B',
+'TGF-B',
+'TGF-B',
+'TGF-B',
+'TGF-B',
+'TGF-B',
+'TGF-B',
+'TGF-B',
+'TGF-B',
+'TGF-B',
+'TGF-B'
+)
+
+
+genes <- data.frame(genes_list, pathway_name)
+genes
+
+```
+
+
+
+```{r}
+DotPlot(refquery, features = genes$genes_list, cols = c("blue", "red"), dot.scale = 1, split.by = "Diagnosis", assay = "RNA") +
+  guides(color = guide_colorbar(title = "Gene Average Expression")) + 
+  facet_grid(~genes$pathway_name,
+             scales = "free",
+             space = "free") + 
+  theme_classic() + 
+  RotatedAxis() + 
+  labs(title = "Control Cell proportion") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        axis.text.y = element_text(vjust = 1, hjust = 1, size =3, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 10, face = 'bold'), legend.position = 'bottom') 
+
+ggsave(here("figure/Pathway_work/TGF-B.pdf"))
+```
+
+
+
+
+
+
+
+
+

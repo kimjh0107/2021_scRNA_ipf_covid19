@@ -1,0 +1,92 @@
+---
+title: "Mapping_process"
+output: html_document
+output: github_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+```
+
+```{r}
+rm(covid, ild)
+```
+
+
+```{r}
+ild<- readRDS(here('explore/RDS/IPF_Preprocessing.RDS'))
+covid <- readRDS(here('explore/RDS/COVID_Preprocessing.RDS'))
+
+head(ild)
+head(covid)
+```
+
+```{r}
+anchors <- FindTransferAnchors(
+  reference = ild,
+  query = covid,
+  normalization.method = "SCT",
+  reference.reduction = "pca",
+  dims = 1:50
+)
+
+
+covid <- MapQuery(
+  anchorset = anchors,
+  query = covid,
+  reference = ild,
+  refdata = list(
+    celltype = "celltype",
+    predicted_SCT = "SCT"
+  ),
+  reference.reduction = "pca", 
+  reduction.model = "umap"
+)
+
+```
+```{r}
+head(covid)
+```
+
+#explore the mapping result
+```{r}
+p1 <- DimPlot(covid, reduction = "ref.umap", group.by = "predicted.celltype", label = TRUE, label.size = 3, repel = TRUE) + NoLegend() 
+p1
+# ggsave(here('figure/mapping_DimPlot.pdf'))
+
+```
+
+```{r}
+plot1 <- FeaturePlot(covid, features = c("T Cells"),  reduction = "ref.umap", cols = c("lightgrey", "darkred"), ncol = 1) & theme(plot.title = element_text(size = 10))
+
+plot2<- FeaturePlot(covid, features = c("NK Cells"),  reduction = "ref.umap", cols = c("lightgrey", "darkred"), ncol = 1) & theme(plot.title = element_text(size = 10))
+
+plot1 + plot2
+
+```
+
+```{r}
+head(covid)
+unique(covid$predicted.celltype)
+unique(covid@meta.data[c('predicted.celltype')])
+```
+
+```{r}
+hist(covid@meta.data$predicted.celltype.score)
+```
+
+
+```{r}
+saveRDS(covid, file = "COVID_Mapping.RDS")
+```
+
+

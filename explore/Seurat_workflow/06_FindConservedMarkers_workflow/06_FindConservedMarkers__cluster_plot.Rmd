@@ -1,0 +1,91 @@
+---
+title: "06_FindConservedMarkers__cluster_plot"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+# Epithelial cells cluster plot 
+```{r}
+refquery <- readRDS(here('explore/RDS/05_Integrate_df_annotation.RDS'))
+refquery <- subset(refquery, cell_type_main == 'Epithelial cells')
+refquery <- ScaleData(object = refquery)
+refquery <- RunPCA(object = refquery)
+refquery <- FindNeighbors(refquery, dims = 1:20)
+refquery <- FindClusters(refquery, resolution = 0.6)
+refquery <- RunUMAP(object = refquery, dims = 1:20)
+
+head(refquery)
+```
+
+#DimPlot
+```{r}
+DimPlot(refquery, reduction = "umap", group.by = "integrated_snn_res.0.6", label = TRUE, label.size = 3, repel = TRUE)
+ggsave(here('figure/Epithelial_cluster.pdf')) 
+```
+rm(refquery)
+
+# Immune cells cluster plot 
+```{r}
+refquery <- readRDS(here('explore/RDS/05_Integrate_df_annotation.RDS'))
+refquery <- subset(refquery, cell_type_main == 'Immune cells')
+refquery <- ScaleData(object = refquery)
+refquery <- RunPCA(object = refquery)
+refquery <- FindNeighbors(refquery, dims = 1:20)
+refquery <- FindClusters(refquery, resolution = 0.6)
+refquery <- RunUMAP(object = refquery, dims = 1:20)
+
+head(refquery)
+```
+#DimPlot
+```{r}
+DimPlot(refquery, reduction = "umap", group.by = "integrated_snn_res.0.6", label = TRUE, label.size = 3, repel = TRUE)
+ggsave(here('figure/Immune_cluster.pdf')) 
+```
+```{r}
+rm(refquery)
+```
+
+
+# Endothelial cells cluster plot 
+```{r}
+refquery <- readRDS(here('explore/RDS/05_Integrate_df_annotation.RDS'))
+refquery <- subset(refquery, cell_type_main == 'Endothelial cells')
+refquery <- ScaleData(object = refquery)
+refquery <- RunPCA(object = refquery)
+refquery <- FindNeighbors(refquery, dims = 1:20)
+refquery <- FindClusters(refquery, resolution = 0.6)
+refquery <- RunUMAP(object = refquery, dims = 1:20)
+
+DimPlot(refquery, reduction = "umap", group.by = "integrated_snn_res.0.6", label = TRUE, label.size = 3, repel = TRUE)
+ggsave(here('figure/Endothelial_cluster.pdf'))
+rm(refquery)
+```
+
+# Mesenchymal cells cluster plot 
+```{r}
+refquery <- readRDS(here('explore/RDS/05_Integrate_df_annotation.RDS'))
+refquery <- subset(refquery, cell_type_main == 'Mesenchymal cells')
+refquery <- ScaleData(object = refquery)
+refquery <- RunPCA(object = refquery)
+refquery <- FindNeighbors(refquery, dims = 1:20)
+refquery <- FindClusters(refquery, resolution = 0.6)
+refquery <- RunUMAP(object = refquery, dims = 1:20)
+
+DimPlot(refquery, reduction = "umap", group.by = "integrated_snn_res.0.6", label = TRUE, label.size = 3, repel = TRUE)
+ggsave(here('figure/Mesenchymal_cluster.pdf'))
+rm(refquery)
+```

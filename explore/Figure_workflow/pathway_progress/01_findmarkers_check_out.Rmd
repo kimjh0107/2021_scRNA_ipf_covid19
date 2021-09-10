@@ -1,0 +1,72 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+
+DimPlot(refquery, reduction = "umap", group.by = "cell_type_submain", label = TRUE, label.size = 3, repel = TRUE) + NoLegend()
+```
+
+# subset을 통해서 epithelial 과 mesenchimal cell만 뽑아서 가져오도록 함 
+
+```{r}
+unique(refquery$cell_type_main)
+```
+
+```{r}
+pathway <- subset(x = refquery, subset = cell_type_main == "Epithelial cells" | cell_type_main == "Mesenchymal cells")
+```
+
+```{r}
+unique(pathway$integrated_snn_res.0.8)
+```
+
+```{r}
+head(pathway)
+```
+
+```{r}
+saveRDS(pathway, file = "pathway.RDS" )
+```
+
+
+```{r}
+pathway_markers <- FindAllMarkers(pathway, min.pct = 0.25, logfc.threshold = 0.25)
+```
+
+```{r}
+write.csv(pathway_markers, "pathway_markers")
+```
+
+```{r}
+FeaturePlot(pathway, features = c("WNT2", 
+
+'CAMK2B',
+
+'CCND1',
+'CCND2'))
+```
+
+```{r}
+DimPlot(pathway, reduction = "umap", group.by = "cell_type_main", label = TRUE, label.size = 3, repel = TRUE) + NoLegend()
+
+```
+
+
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    

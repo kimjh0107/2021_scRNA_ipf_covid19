@@ -1,0 +1,54 @@
+---
+title: "03_Slingshot"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(slingshot)
+library(BUSpaRse)
+library(tidyverse)
+library(tidymodels)
+library(Seurat)
+library(scales)
+library(viridis)
+library(Matrix)
+library(here)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+
+epi <- subset(refquery, cells = rownames(refquery@meta.data[refquery@meta.data$cell_type_main == "Epithelial cells", ]))
+
+# Subset out only ILD samples from Epi population
+epi_ild <- subset(epi, cells = rownames(epi@meta.data[epi@meta.data$Status == "ILD",]))
+```
+
+```{r}
+# five celltypes
+two <- subset(epi_ild, cells = rownames(epi_ild@meta.data[epi_ild@meta.data$cell_type_submain %in% c("AT1", "AT2"),]))
+
+#five <- SCTransform(two)
+two <- RunPCA(two)
+#ElbowPlot(five)
+two <- RunUMAP(two, dims = 1:50, verbose = F)
+```
+
+```{r}
+DimPlot(two, group.by = "cell_type_submain", pt.size = 0.5, label = TRUE, repel = TRUE)
+```
+
+
+```{r}
+#sds <- slingshot(Embeddings(AT2, "umap"), clusterLabels = AT2$SCT_snn_res.1, 
+#                 start.clus = 3, stretch = 1)
+```
+
+```{r}
+#print(SlingshotDataSet(sds))
+```
+
+
+
+
+

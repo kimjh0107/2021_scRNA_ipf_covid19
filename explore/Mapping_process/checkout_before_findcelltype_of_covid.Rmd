@@ -1,0 +1,70 @@
+---
+title: "checkout_before_findcelltype_of_covid"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/refquery_null_fill.RDS'))
+refquery
+```
+
+```{r}
+head(refquery)
+```
+
+```{r}
+DimPlot(refquery, reduction = "umap", group.by = "Diagnosis", label = TRUE, label.size = 3, repel = TRUE) 
+DimPlot(refquery, reduction = "umap", group.by = "Status", label = TRUE, label.size = 3, repel = TRUE) 
+DimPlot(refquery, reduction = "umap", group.by = "population", label = TRUE, label.size = 3, repel = TRUE) 
+DimPlot(refquery, reduction = "umap", group.by = "celltype", label = TRUE, label.size = 3, repel = TRUE) + NoLegend()
+DimPlot(refquery, reduction = "umap", group.by = "seurat_clusters", label = TRUE, label.size = 3, repel = TRUE) 
+```
+
+
+```{r}
+DimPlot(refquery, reduction = "umap", group.by = "celltype", label = TRUE, label.size = 3, repel = TRUE) + NoLegend()
+DimPlot(refquery, reduction = "umap", group.by = "seurat_clusters", label = TRUE, label.size = 3, repel = TRUE)
+```
+```{r}
+head(refquery)
+```
+
+
+```{r}
+table(is.na(refquery@meta.data$orig.ident))
+table(is.na(refquery@meta.data$nCount_RNA))
+table(is.na(refquery@meta.data$nFeature_RNA))
+table(is.na(refquery@meta.data$Diagnosis))
+table(is.na(refquery@meta.data$Status))
+table(is.na(refquery@meta.data$percent.mt))
+table(is.na(refquery@meta.data$nCount_SCT))
+table(is.na(refquery@meta.data$nFeature_SCT))
+table(is.na(refquery@meta.data$percent.mt))
+table(is.na(refquery@meta.data$nCount_SCT))
+table(is.na(refquery@meta.data$nFeature_SCT))
+```
+
+```{r}
+table(is.na(refquery@meta.data$cellbarcodes)) # 이건 그냥 무시해도 되는부분 
+table(is.na(refquery@meta.data$Sample_Name)) # 이것도 
+table(is.na(refquery@meta.data$Sample_Source)) # 이것도 그냥 DNA 다 이거 보여주는 부분 
+table(is.na(refquery@meta.data$celltype))
+table(is.na(refquery@meta.data$population))
+table(is.na(refquery@meta.data$SCT_snn_res.0.8)) # 이 부분은 integration 하면서 생겨나는 부분 같은데 확인해봐야됨 다시 
+table(is.na(refquery@meta.data$seurat_clusters))
+```
+
+

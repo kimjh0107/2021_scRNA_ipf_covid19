@@ -1,0 +1,66 @@
+---
+title: "03_Heatmap_by_fig3markers"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(Seurat)
+library(here)
+```
+
+```{r}
+fig3 <- readRDS(here('explore/Figure_workflow/AT_workflow/fig3.RDS'))
+fig3_markers <- read.csv(here('explore/Figure_workflow/AT_workflow/AT_specific_findallmarkers.csv'))
+```
+
+```{r}
+head(fig3)
+head(fig3_markers)
+```
+
+```{r}
+#Idents(fig3) <- "new_submain"
+levels(fig3)
+```
+
+
+```{r}
+fig3_markers %>%
+   # group_by(cluster) %>%
+    top_n(n = 50, wt = avg_log2FC) -> top10
+DoHeatmap(fig3, features = top10$gene) + 
+  theme_classic() + 
+  theme(legend.position = 'bottom')  
+ggsave(here('explore/Figure_workflow/AT_workflow/AT_heatmap.pdf')) 
+
+```
+
+```{r}
+top20 <- fig3_markers %>% 
+  group_by(cluster == "2") %>% 
+  top_n(n = 20, wt = avg_log2FC)
+
+
+DoHeatmap(fig3, features = top20$gene) + 
+  #theme_classic() + 
+  theme(legend.position = 'bottom')  
+#ggsave(here('explore/Figure_workflow/AT_workflow/AT_heatmap.pdf'))
+```
+
+
+# 아니면 AT1_1 이렇게 따로따로 heatmap 을 그려봄으로서 유의미한 유전자를 찾는 방법 말고는 없을듯 
+
+```{r}
+top20 <- fig3_markers %>% 
+  group_by(cluster) %>% 
+  top_n(n = 20, wt = avg_log2FC)
+```
+
+
+
+
+
+
+
+

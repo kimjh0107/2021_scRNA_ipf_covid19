@@ -1,0 +1,170 @@
+---
+title: "08_AT2_make_more_specific"
+output: html_document
+---
+
+```{r}
+library(slingshot)
+library(BUSpaRse)
+library(tidyverse)
+library(tidymodels)
+library(Seurat)
+library(scales)
+library(viridis)
+library(Matrix)
+library(SingleCellExperiment)
+library(here)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+```
+
+```{r}
+AT <- subset(x = refquery, subset = cell_type_submain == "AT2" | cell_type_submain == "AT1")
+unique(AT$cell_type_submain)
+```
+
+```{r}
+AT <- ScaleData(object = AT)
+AT <- RunPCA(object = AT)
+AT <- FindNeighbors(AT, dims = 1:30)
+AT <- FindClusters(AT, resolution = 0.6)
+AT <- RunUMAP(object = AT, dims = 1:30)
+```
+
+```{r}
+head(AT)
+```
+
+```{r}
+unique(AT$seurat_clusters)
+```
+
+
+```{r}
+DimPlot(AT, group.by = "seurat_clusters", label = TRUE)
+DimPlot(AT, group.by = "cell_type_submain", label = TRUE)
+```
+
+```{r}
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(7), "AT1_1", "NA")
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(9), "AT1_2", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(6), "AT1_3", AT@meta.data$new_submain)
+
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(0), "AT2_1", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(3), "AT2_2", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(4), "AT2_3", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(11), "AT2_4", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(12), "AT2_5", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(1), "AT2_6", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(2), "AT2_7", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(10), "AT2_8", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(8), "AT2_9", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(5), "AT2_10", AT@meta.data$new_submain)
+```
+
+```{r}
+DimPlot(AT, group.by = "new_submain", label = TRUE)
+```
+
+# Convert to SingleCellExperiment
+```{r}
+sub_sce <- as.SingleCellExperiment(AT, assay = "RNA")
+
+onion <- sub_sce@int_colData$reducedDims@listData$PCA[,1:20]
+sub_sce@int_colData$reducedDims@listData$PCA <- onion
+
+# Remove mitochondria and ribosomal genes
+temp <- grep( "^MT-", rownames(sub_sce), ignore.case = F, value = T) 
+sub_sce <- sub_sce[!rownames(sub_sce) %in% temp,]
+temp2 <- grep( "^RP", rownames(sub_sce), ignore.case = F, value = T) 
+sub_sce <- sub_sce[!rownames(sub_sce) %in% temp2,] 
+                
+# Run Slingshot
+sub_slingshot <- slingshot(sub_sce, clusterLabels = "new_submain", reducedDim = 'UMAP',
+                           start.clus="AT_1")
+summary(sub_slingshot$slingPseudotime_1)
+print(SlingshotDataSet(sub_slingshot))
+```
+
+```{r}
+unique(AT$new_submain)
+```
+
+
+```{r}
+epi_color <- as.character(AT@meta.data$new_submain)
+epi_color <- setNames(epi_color, rownames(AT@meta.data))
+
+onion <- epi_color
+onion[onion == "AT1_1"] <- "#EE4242"
+onion[onion == "AT1_2"] <- "#EE7042"
+onion[onion == "AT1_3"] <- "#EEB542"
+onion[onion == "AT2_1"] <- "#DDEE42"
+onion[onion == "AT2_2"] <- "#E8EE42"
+onion[onion == "AT2_3"] <- "#EE4253"
+onion[onion == "AT2_4"] <- "#42EE5C"
+onion[onion == "AT2_5"] <- "#42EEC9"
+onion[onion == "AT2_6"] <- "#42ACEE"
+onion[onion == "AT2_7"] <- "#5642EE"
+onion[onion == "AT2_8"] <- "#B242EE"
+onion[onion == "AT2_9"] <- "#EE42C9"
+onion[onion == "AT2_10"] <- "#EE4273"
+
+epi_color <- onion
+```
+
+```{r}
+plot(reducedDims(sub_slingshot)$UMAP, col = epi_color,
+     pch = 16, asp = 1, xlab = "UMAP_1", ylab = "UMAP_2", cex=0.6)   
+legend(par(xpd = T), x= "topleft", pch = c(20), 
+       legend = c("AT1_1", 
+                  "AT1_2", 
+                  "AT1_3", 
+                  "AT2_1", 
+                  "AT2_2", 
+                  "AT2_3", 
+                  "AT2_4", 
+                  "AT2_5", 
+                  "AT2_6", 
+                  "AT2_7", 
+                  "AT2_8", 
+                  "AT2_9", 
+                  "AT2_10"), 
+       col = c("#EE4242", 
+               "#EE7042", 
+               "#EEB542", 
+               "#DDEE42", 
+               "#E8EE42", 
+               "#EE4253", 
+               "#42EE5C", 
+               "#42EEC9", 
+               "#42ACEE",
+               "#5642EE", 
+               "#B242EE", 
+               "#EE42C9", 
+               "#EE4273" ), bty = 'n')
+lines(slingCurves(sub_slingshot)$Lineage5, lwd=2, col = 'black')
+          
+# Save lineage
+#umap_lineage <- sub_slingshot$slingPseudotime_1
+#umap_lineage <- colnames(sub_slingshot)
+
+#ggsave(here("figure/Trajectory_work/line_UMAP_by_Lineage7.pdf"))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

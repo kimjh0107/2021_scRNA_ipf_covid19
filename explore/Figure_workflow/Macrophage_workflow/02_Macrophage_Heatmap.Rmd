@@ -1,0 +1,167 @@
+---
+title: "02_Macrophage_Heatmap"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(Seurat)
+library(here)
+```
+
+```{r}
+Macrophage <- readRDS(here('explore/Figure_workflow/Macrophage_workflow/Macrophage_2.RDS'))
+Macrophage_markers <- read.csv(here('explore/Figure_workflow/Macrophage_workflow/Macrophage_specific_findallmarkers.csv'))
+```
+
+```{r}
+head(Macrophage)
+head(Macrophage_markers)
+```
+
+```{r}
+top50 <- Macrophage_markers %>% 
+  top_n(n = 10, wt = avg_log2FC)
+
+head(top50)
+```
+
+```{r}
+features <- c(
+'MT1G2',
+'CXCL10',
+'MT1X3',
+'MT1H',
+'SFTPC',
+'MT1E3',
+'MT2A4',
+'SCGB1A11',
+'MT1M',
+'SCGB3A12',
+'CCL2',
+'SCGB3A2',
+'MT1F2',
+'IGKV1-9',
+'IGKV1-51',
+'GNLY',
+'CXCL91',
+'FABP4',
+'F13A1',
+'FOLR21',
+'IGKV4-11',
+'STMN11',
+'SFTPB',
+'SLPI',
+'RNASE11',
+'THBS1',
+'CCL5',
+'HIST1H4C',
+'NKG7',
+'MT1A1',
+'SPP1',
+'LYVE1',
+'IGLV3-11',
+'HMOX1',
+'IGLV1-401',
+'SFTPA1',
+'STAB1',
+'CXCL81',
+'IGKV3-151',
+'SLC40A11',
+'PLTP1',
+'CCL22',
+'UBE2C',
+'FGL2',
+'APOBEC3A1',
+'IL321',
+'TIMP1',
+'IL1RN',
+'GBP1',
+'BIRC31',
+'GBP5',
+'LAMP3',
+'SFTPA2',
+'IDO1',
+'TYMS',
+'IFITM11',
+'CCL131',
+'PTTG1',
+'CCL42',
+'CCL81',
+'TUBB',
+'CHI3L1',
+'CCL4L21',
+'TUBA1B',
+'HOPX',
+'ISG151',
+'CCL7',
+'CHIT1',
+'WFDC2'
+)
+```
+
+```{r}
+FeaturePlot(Macrophage, features = features)
+```
+
+```{r}
+levels(Macrophage)
+Idents(Macrophage) <- "new_submain"
+```
+
+```{r}
+levels(Macrophage)
+```
+
+
+```{r}
+top40 <- Macrophage_markers %>% 
+  #group_by(cluster == "22") %>% 
+  top_n(n = 10, wt = avg_log2FC)
+
+DoHeatmap(Macrophage, features = top40$gene) + 
+  labs(title = "Macrophage") +
+  theme(legend.position = 'bottom')
+
+
+```
+
+```{r}
+DimPlot(Macrophage, group.by = "seurat_clusters")
+DimPlot(Macrophage, group.by = "new_submain")
+```
+
+
+```{r}
+head(Macrophage)
+```
+
+```{r}
+top40 <- Macrophage_markers %>% 
+  group_by(cluster == "16") %>% 
+  top_n(n = 40, wt = avg_log2FC)
+
+DoHeatmap(AT1_1, features = top40$gene) + 
+  labs(title = "M1_1") +
+  theme(legend.position = 'bottom')
+
+ggsave(here('explore/Figure_workflow/AT_workflow/AT1_1_heatmap.pdf'))
+```
+
+
+# 논문에 IL-4, IL-13 -> M2 로 된다고 하니 발현 확인 
+```{r}
+FeaturePlot(Macrophage, features = c("rna_IL4", "IL13"))
+DoHeatmap(Macrophage, features = c("rna_IL4", "IL13"))
+```
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,82 @@
+---
+title: "Integration_test_01"
+output: html_document
+---
+
+# Object
+- IPF + Control `ipf_control`
+- Covid `covid`
+
+# Split
+
+ipf.list <- SplitObject(ipf_control, split.by = 'diagnosis')
+object.list <- c(ipf.list, covid)
+
+
+# Normalization
+
+
+
+```{r}
+library(covidrat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+library(future)
+library(future.apply)
+
+ipf_control <- readRDS(here('explore/RDS/02_ild_covidrat_workflow.RDS'))
+covid <- readRDS(here('explore/RDS/02_covid_covidrat_workflow.RDS'))
+
+```
+
+```{r}
+plan('multiprocess', workers = 40)
+options(future.globals.maxSize = 2e+05 * 1024^2)
+```
+
+
+```{r}
+# split the dataset
+ipf.list <- SplitObject(ipf_control, split.by = 'Diagnosis')
+object.list <- c(ipf.list, covid)
+```
+
+```{r}
+# Prepare object list 
+object.list <- lapply(X = object.list, FUN = function(x) {
+  x <- NormalizeData(x, verbose = FALSE)
+  x <- FindVariableFeatures(x, selection.method = "vst", verbose = FALSE)
+})
+
+features <- SelectIntegrationFeatures(object.list = object.list)
+
+
+object.list <- future_lapply(X = object.list, FUN = function(x) {
+  x <- ScaleData(x, features = features, verbose = FALSE)
+  x <- RunPCA(x, features = features, verbose = FALSE)
+})
+
+# Find anchors -> RPCA
+anchors <- FindIntegrationAnchors(object.list = object.list, reduction = 'rpca', dims = 1:50)
+
+# Integrate data sets
+refquery <- IntegrateData(anchorset = anchors, dims = 1:50)
+
+# Normal workflow
+refquery <- ScaleData(object = refquery)
+refquery <- RunPCA(object = refquery)
+refquery <- FindNeighbors(refquery, dims = 1:30)
+refquery <- FindClusters(refquery)
+refquery <- RunUMAP(object = refquery, dims = 1:30)
+
+saveRDS(covid, file = "Integrate_df.RDS")
+```
+
+

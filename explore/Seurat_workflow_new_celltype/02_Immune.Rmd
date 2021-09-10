@@ -1,0 +1,63 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/05_New_Integrate_df.RDS'))
+
+refquery <- subset(refquery, cell_type_main == 'Immune cells')
+refquery <- ScaleData(object = refquery)
+refquery <- RunPCA(object = refquery)
+refquery <- FindNeighbors(refquery, dims = 1:20)
+refquery <- FindClusters(refquery, resolution = 0.6)
+refquery <- RunUMAP(object = refquery, dims = 1:20)
+```
+
+```{r}
+DimPlot(refquery, reduction = "umap", group.by = "integrated_snn_res.0.6", label = TRUE, label.size = 3, repel = TRUE)
+```
+
+```{r}
+features_M1 <- c("CD86", "CD80", "CD64", "CD16", "CD32")
+features_M2 <- c("CD163", "CD206", "CD68", "CD36", "MMR")
+features_Monocyte <- c('CD14', 'S100A8', 'FCYRIII')
+
+FeaturePlot(refquery, features = features_M1)
+FeaturePlot(refquery, features = features_M2)
+FeaturePlot(refquery, features = features_Monocyte)
+
+```
+
+
+
+
+```{r}
+# Find cell type assignmnet after manual annotation based on DGE
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(15), "Plasma Cell", "NA")
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(13), "B Cell", refquery@meta.data$cell_type_submain)
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(19, 4, 18), "CD4 Tcell", refquery@meta.data$cell_type_submain)
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(8), "CD8 Tcell", refquery@meta.data$cell_type_submain)
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(10), "Neutrophil", refquery@meta.data$cell_type_submain)
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(5), "NK Cell", refquery@meta.data$cell_type_submain)
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(11), "Mast Cell", refquery@meta.data$cell_type_submain)
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(0, 3, 14, 21, 2, 6, 9, 17, 12), "M2 Macrophage", refquery@meta.data$cell_type_submain)
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(16, 7 ), "M1 Macrophage", refquery@meta.data$cell_type_submain)
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(22), "pDCs", refquery@meta.data$cell_type_submain)
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(7), "mDCs", refquery@meta.data$cell_type_submain)
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(1, 20), "Monocyte", refquery@meta.data$cell_type_submain)
+
+DimPlot(refquery, reduction = "umap", group.by = "cell_type_submain", label = TRUE, label.size = 3, repel = TRUE)
+```
+
+```{r}
+saveRDS(refquery, file = "06_Immune_celltype.RDS" )
+celltype <- refquery@meta.data %>% select("cellbarcodes", "cell_type_submain")
+write.csv(celltype, "New_Immune_celltype")
+```

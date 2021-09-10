@@ -1,0 +1,259 @@
+---
+title: "Covid_predicted_celltype_check_for_annotation"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+```
+
+```{r}
+covid_predicted_cell <- readRDS(here('explore/RDS/COVID_Mapping.RDS'))
+head(covid_predicted_cell)
+```
+
+현재는 clustering을 진행을 해주지 않았기 때문에 clustering이 나오지 않는 부분 확인가능 
+
+그렇기 때문에 한번 clustering을 진행한 이후에 mapping을 해서 결과를 확인 
+
+```{r}
+# load data
+ild<- readRDS(here('explore/RDS/IPF_Preprocessing.RDS'))
+covid <- readRDS(here('explore/RDS/COVID_try_preprocessing_again.RDS'))
+
+# find cluster covid
+# 위에 이미 clustering된 데이터 
+
+
+
+# mapping process
+anchors <- FindTransferAnchors(
+  reference = ild,
+  query = covid,
+  normalization.method = "SCT",
+  reference.reduction = "pca",
+  dims = 1:50
+)
+
+
+covid <- MapQuery(
+  anchorset = anchors,
+  query = covid,
+  reference = ild,
+  refdata = list(
+    celltype = "celltype",
+    predicted_SCT = "SCT"
+  ),
+  reference.reduction = "pca", 
+  reduction.model = "umap"
+)
+
+```
+
+```{r}
+head(covid)
+```
+
+```{r}
+saveRDS(covid, file = "COVID_mapping_after_clustering.RDS")
+```
+
+```{r}
+unique(covid@meta.data$seurat_clusters)
+```
+
+seurat_cluster가 1인 predicted.celltype값은? 
+```{r}
+a0 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 0)
+
+a1 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 1)
+
+a2 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 2)
+
+a3 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 3)
+
+a4 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 4)
+
+a5 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 5)
+
+a6 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 6)
+
+a7 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 7)
+
+a8 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 8)
+
+a9 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 9)
+
+a10 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 10)
+
+a11 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 11)
+
+a12 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 12)
+
+a13 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 13)
+
+a14 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 14)
+
+a15 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 15)
+
+a16 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 16)
+
+a17 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 17)
+
+a18 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 18)
+
+a19 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 19)
+
+a20 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 20)
+
+a21 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 21)
+
+a22 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 22)
+
+a23 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 23)
+
+a24 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 24)
+
+a25 <- covid@meta.data %>% 
+  subset(covid@meta.data$seurat_clusters == 25)
+```
+
+
+```{r}
+head(a0$predicted.celltype)
+```
+
+```{r}
+head(a1$predicted.celltype)
+```
+
+```{r}
+head(a2$predicted.celltype)
+```
+
+```{r}
+head(a3$predicted.celltype)
+```
+
+```{r}
+head(a4$predicted.celltype)
+```
+
+```{r}
+head(a5$predicted.celltype)
+```
+
+```{r}
+head(a6$predicted.celltype)
+```
+
+```{r}
+head(a7$predicted.celltype)
+```
+
+```{r}
+head(a8$predicted.celltype)
+```
+
+```{r}
+head(a9$predicted.celltype)
+```
+
+```{r}
+head(a10$predicted.celltype)
+```
+
+```{r}
+head(a11$predicted.celltype)
+```
+
+```{r}
+head(a12$predicted.celltype)
+```
+
+```{r}
+head(a13$predicted.celltype)
+```
+
+```{r}
+head(a14$predicted.celltype)
+```
+
+```{r}
+head(a15$predicted.celltype)
+```
+
+```{r}
+head(a16$predicted.celltype)
+```
+
+```{r}
+head(a17$predicted.celltype)
+```
+
+```{r}
+head(a18$predicted.celltype)
+```
+
+```{r}
+head(a19$predicted.celltype)
+```
+
+```{r}
+head(a20$predicted.celltype)
+```
+
+```{r}
+head(a21$predicted.celltype)
+```
+
+```{r}
+head(a22$predicted.celltype)
+```
+
+```{r}
+head(a23$predicted.celltype)
+```
+
+```{r}
+head(a24$predicted.celltype)
+```
+
+```{r}
+head(a25$predicted.celltype)
+```
+

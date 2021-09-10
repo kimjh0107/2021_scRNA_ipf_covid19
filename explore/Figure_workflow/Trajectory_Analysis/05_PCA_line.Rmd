@@ -1,0 +1,74 @@
+---
+title: "05_PCA_plot"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(slingshot)
+library(BUSpaRse)
+library(tidyverse)
+library(tidymodels)
+library(Seurat)
+library(scales)
+library(viridis)
+library(Matrix)
+library(SingleCellExperiment)
+library(here)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+fig3 <- subset(x = refquery, subset = cell_type_submain == "AT2" | cell_type_submain == "AT1")
+fig3 <- ScaleData(object = fig3)
+fig3 <- RunPCA(object = fig3)
+fig3 <- FindNeighbors(fig3, dims = 1:30)
+fig3 <- FindClusters(fig3)
+fig3 <- RunUMAP(object = fig3, dims = 1:30)
+```
+
+
+
+#PCA
+```{r}
+
+epi_color <- as.character(fig3@meta.data$cell_type_submain)
+epi_color <- setNames(epi_color, rownames(fig3@meta.data))
+
+onion <- epi_color
+onion[onion == "AT2"] <- "#EE7342"
+onion[onion == "AT1"] <- "#548BC5"
+epi_color <- onion
+
+sub_sce <- as.SingleCellExperiment(fig3)
+
+# Dimentionality reduction
+onion <- sub_sce@int_colData$reducedDims@listData$PCA[,1:20]
+sub_sce@int_colData$reducedDims@listData$PCA <- onion
+
+# Remove mitochondria and ribosomal genes
+temp <- grep( "^MT-", rownames(sub_sce), ignore.case = F, value = T) #13 MT genes
+sub_sce <- sub_sce[!rownames(sub_sce) %in% temp,]
+temp2 <- grep( "^RP", rownames(sub_sce), ignore.case = F, value = T) #4723 RP genes
+sub_sce <- sub_sce[!rownames(sub_sce) %in% temp2,] # total 21641 genes, 6406 cells
+
+# Run Slingshot
+sub_slingshot <- slingshot(sub_sce, clusterLabels = "cell_type_submain", reducedDim = 'PCA',
+                           start.clus="AT2", end.clus="AT1")
+summary(sub_slingshot$slingPseudotime_1)
+print(SlingshotDataSet(sub_slingshot))
+```
+
+```{r}
+# Plot the trajectory
+plot(reducedDims(sub_slingshot)$PCA, col = epi_color,
+     pch = 16, asp = 1, xlab = "PC_1", ylab = "PC_2", cex=0.6)   
+legend(par(xpd = T), x= "topleft", pch = c(20), 
+       legend = c("AT2","AT1"), 
+       col = c("#EE7342","#548BC5"), bty = 'n')
+#lines(slingCurves(sub_slingshot)$Lineage1, lwd=3)
+lines(SlingshotDataSet(sub_slingshot), lwd = 2, col = 'black')
+
+# save lineage
+#pca_lineage <- sub_slingshot$slingPseudotime_1
+#pca_lineage <- colnames(sub_slingshot)
+```

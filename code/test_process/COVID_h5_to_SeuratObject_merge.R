@@ -1,0 +1,56 @@
+
+```{r setup, include=FALSE}
+library(Matrix)
+library(rhdf5)
+library(tidyverse)
+library(glue)
+library(here)
+library(hdf5r)
+```
+
+```{r}
+# C166
+data <- Read10X_h5(here('data/GSE149878_covid_lung/GSM4516279_C166_filtered_feature_bc_matrix.h5'), use.names = TRUE, unique.features = TRUE)
+obj1 <- CreateSeuratObject(data)
+head(obj1)
+
+# C168
+data <- Read10X_h5(here('data/GSE149878_covid_lung/GSM4516279_C168_filtered_feature_bc_matrix.h5'), use.names = TRUE, unique.features = TRUE)
+obj2 <- CreateSeuratObject(data)
+head(obj2)
+
+# C170
+data <- Read10X_h5(here('data/GSE149878_covid_lung/GSM4516279_C170_filtered_feature_bc_matrix.h5'), use.names = TRUE, unique.features = TRUE)
+obj3 <- CreateSeuratObject(data)
+head(obj3)
+
+# C172
+data <- Read10X_h5(here('data/GSE149878_covid_lung/GSM4516279_C172_filtered_feature_bc_matrix.h5'), use.names = TRUE, unique.features = TRUE)
+obj4 <- CreateSeuratObject(data)
+head(obj4)
+```
+
+```{r}
+# merge SeuratObject
+covid <- merge(obj1, y = c(obj2, obj3, obj4), add.cell.ids = c('obj1', 'obj2', 'obj3', 'obj4'), project = 'scRNA_IPF_data')
+covid
+
+saveRDS(covid, file = "COVID_h5_to_SeuratObject_merge.RDS")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

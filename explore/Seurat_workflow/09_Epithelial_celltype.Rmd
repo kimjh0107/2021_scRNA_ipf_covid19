@@ -1,0 +1,192 @@
+---
+title: "09_Epithelial_celltype"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+# Epithelial
+```{r}
+Epithelial <- readRDS(here('explore/RDS/Epithelial_cluster.RDS'))
+head(Epithelial)
+
+# Find cell type assignmnet after manual annotation based on DGE
+
+Epithelial@meta.data$cell_type_submain <- ifelse(Epithelial@meta.data$integrated_snn_res.0.6 %in% c(11, 13), "AT1", "NA")
+Epithelial@meta.data$cell_type_submain <- ifelse(Epithelial@meta.data$integrated_snn_res.0.6 %in% c(10, 5, 8, 7, 14, 15), "AT2", Epithelial@meta.data$cell_type_submain)
+Epithelial@meta.data$cell_type_submain <- ifelse(Epithelial@meta.data$integrated_snn_res.0.6 %in% c(6), "Basal Cell", Epithelial@meta.data$cell_type_submain)
+Epithelial@meta.data$cell_type_submain <- ifelse(Epithelial@meta.data$integrated_snn_res.0.6 %in% c(1, 2, 0, 20, 18, 12, 9, 21, 19), "Ciliated Cell", Epithelial@meta.data$cell_type_submain)
+Epithelial@meta.data$cell_type_submain <- ifelse(Epithelial@meta.data$integrated_snn_res.0.6 %in% c(3, 17, 16), "Club Cell", Epithelial@meta.data$cell_type_submain)
+Epithelial@meta.data$cell_type_submain <- ifelse(Epithelial@meta.data$integrated_snn_res.0.6 %in% c(4), "Gobelt Cel", Epithelial@meta.data$cell_type_submain)
+
+```
+
+```{r}
+head(Epithelial)
+```
+
+```{r}
+cells <- Epithelial@meta.data
+unique(cells$Diagnosis)
+cells$Disease <- recode(cells$Status, `Control` = "Ctrl", `ILD` = "IPF", COVID = "COV")
+cells$batch <- substr(cells$cellbarcodes, 1, 4)
+unique(cells$batch)
+
+head(cells)
+```
+
+```{r}
+table(is.na(cells$Diagnosis))
+table(is.na(cells$Status))
+table(is.na(cells$cell_type_submain))
+table(is.na(cells$Disease))
+table(is.na(cells$batch))
+table(is.na(cells$cellbarcodes))
+table(is.na(cells$orig.ident))
+
+
+```
+
+
+
+cells %>%
+  select(Disease, cell_type_submain.x)
+
+cell_count_df <- cells %>%
+  select(batch, Disease, cell_type_submain) %>%
+  group_by(batch, Disease, cell_type_submain) %>%
+  summarise(count_cell = n(), .groups = "drop") 
+  
+sum_cell_df <- cell_count_df %>%
+  group_by(batch) %>%
+  summarise(sum_cell = sum(count_cell))
+
+cell_count_df %>% left_join(sum_cell_df, by = 'batch') %>%
+  mutate(percentage = count_cell / sum_cell * 100) %>%
+  filter(cell_type_submain == 'AT2') %>%
+  ggplot(aes(Disease, percentage)) + geom_jitter()
+
+cell_count_df %>% filter(Disease == 'COV')
+
+
+
+
+
+```{r}
+DimPlot(Epithelial, reduction = "umap", group.by = "cell_type_submain", label = TRUE, label.size = 3, repel = TRUE)
+ggsave(here('figure/epithelial_celltype_match.pdf')) 
+```
+
+```{r}
+saveRDS(Epithelial, file = "Input_epithelial_celltype.RDS")
+celltype <- Epithelial@meta.data %>% select("cellbarcodes", "cell_type_submain")
+write.csv(celltype, "Epithelial_celltype")
+```
+
+
+
+
+
+# Immune 
+```{r}
+Immune <- readRDS(here('explore/RDS/Immune_cluster.RDS'))
+```
+
+```{r}
+# Find cell type assignmnet after manual annotation based on DGE
+Immune@meta.data$cell_type_submain <- ifelse(Immune@meta.data$integrated_snn_res.0.6 %in% c(15), "Plasma Cell", "NA")
+Immune@meta.data$cell_type_submain <- ifelse(Immune@meta.data$integrated_snn_res.0.6 %in% c(13), "B Cell", Immune@meta.data$cell_type_submain)
+Immune@meta.data$cell_type_submain <- ifelse(Immune@meta.data$integrated_snn_res.0.6 %in% c(19, 4, 18), "CD4 Tcell", Immune@meta.data$cell_type_submain)
+Immune@meta.data$cell_type_submain <- ifelse(Immune@meta.data$integrated_snn_res.0.6 %in% c(8), "CD8 Tcell", Immune@meta.data$cell_type_submain)
+Immune@meta.data$cell_type_submain <- ifelse(Immune@meta.data$integrated_snn_res.0.6 %in% c(10), "Neutrophil", Immune@meta.data$cell_type_submain)
+Immune@meta.data$cell_type_submain <- ifelse(Immune@meta.data$integrated_snn_res.0.6 %in% c(5), "NK Cell", Immune@meta.data$cell_type_submain)
+Immune@meta.data$cell_type_submain <- ifelse(Immune@meta.data$integrated_snn_res.0.6 %in% c(11), "Mast Cell", Immune@meta.data$cell_type_submain)
+Immune@meta.data$cell_type_submain <- ifelse(Immune@meta.data$integrated_snn_res.0.6 %in% c(0, 3, 14, 16, 21, 2, 6, 9, 17), "Macrophage", Immune@meta.data$cell_type_submain)
+Immune@meta.data$cell_type_submain <- ifelse(Immune@meta.data$integrated_snn_res.0.6 %in% c(22), "pDCs", Immune@meta.data$cell_type_submain)
+Immune@meta.data$cell_type_submain <- ifelse(Immune@meta.data$integrated_snn_res.0.6 %in% c(7), "mDCs", Immune@meta.data$cell_type_submain)
+Immune@meta.data$cell_type_submain <- ifelse(Immune@meta.data$integrated_snn_res.0.6 %in% c(1, 20), "Monocyte", Immune@meta.data$cell_type_submain)
+Immune@meta.data$cell_type_submain <- ifelse(Immune@meta.data$integrated_snn_res.0.6 %in% c(12), "Proliferating Macrophage", Immune@meta.data$cell_type_submain)
+```
+
+```{r}
+DimPlot(Immune, reduction = "umap", group.by = "cell_type_submain", label = TRUE, label.size = 3, repel = TRUE)
+ggsave(here('figure/03_celltype_matching/Immune_celltype_match.pdf')) 
+```
+
+
+```{r}
+saveRDS(Immune, file = "Input_Immune_celltype.RDS")
+```
+
+```{r}
+celltype <- Immune@meta.data %>% select("cellbarcodes", "cell_type_submain")
+write.csv(celltype, "Immune_celltype.csv")
+```
+ 
+```{r}
+head(Immune)
+```
+
+
+```{r}
+refquery <- readRDS(here('explore/RDS/05_Integrate_df_annotation.RDS'))
+```
+
+```{r}
+Immune <- read.csv(here('explore/Immune_celltype.csv'))
+
+celltypes <- rbind.data.frame(Immune)
+refquery@meta.data$barcode <- rownames(refquery@meta.data)
+refquery@meta.data <- left_join(refquery@meta.data, celltypes, by = 'cellbarcodes')
+```
+
+```{r}
+rownames(refquery@meta.data) <- refquery@meta.data$cellbarcodes
+refquery@meta.data$cell_type_submain <- ifelse(is.na(refquery@meta.data$cell_type_submain) == T, refquery@meta.data$cell_type_main, refquery@meta.data$cell_type_submain)
+
+```
+
+```{r}
+head(refquery)
+```
+
+```{r}
+DimPlot(refquery, reduction = "umap", group.by = "cell_type_submain", label = TRUE, label.size = 3, repel = TRUE)
+
+```
+
+
+# Endothelial
+```{r}
+Endothelial <- readRDS(here('explore/RDS/Endothelial_cluster.RDS'))
+head(Endothelial)
+
+DimPlot(Endothelial, reduction = "umap", group.by = "integrated_snn_res.0.6", label = TRUE, label.size = 3, repel = TRUE)
+
+```
+
+```{r}
+# Find cell type assignmnet after manual annotation based on DGE
+
+Epithelial@meta.data$cell_type_submain <- ifelse(Epithelial@meta.data$integrated_snn_res.0.6 %in% c(11, 13), "AT1", "NA")
+Epithelial@meta.data$cell_type_submain <- ifelse(Epithelial@meta.data$integrated_snn_res.0.6 %in% c(10, 5, 8, 7, 14, 15), "AT2", Epithelial@meta.data$cell_type_submain)
+Epithelial@meta.data$cell_type_submain <- ifelse(Epithelial@meta.data$integrated_snn_res.0.6 %in% c(6), "Basal Cell", Epithelial@meta.data$cell_type_submain)
+Epithelial@meta.data$cell_type_submain <- ifelse(Epithelial@meta.data$integrated_snn_res.0.6 %in% c(1, 2, 0, 20, 18, 12, 9, 21, 19), "Ciliated Cell", Epithelial@meta.data$cell_type_submain)
+Epithelial@meta.data$cell_type_submain <- ifelse(Epithelial@meta.data$integrated_snn_res.0.6 %in% c(3, 17, 16), "Club Cell", Epithelial@meta.data$cell_type_submain)
+Epithelial@meta.data$cell_type_submain <- ifelse(Epithelial@meta.data$integrated_snn_res.0.6 %in% c(4), "Gobelt Cel", Epithelial@meta.data$cell_type_submain)
+
+```
+

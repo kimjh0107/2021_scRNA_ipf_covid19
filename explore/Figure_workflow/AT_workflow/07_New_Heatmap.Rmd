@@ -1,0 +1,192 @@
+---
+title: "07_New_Heatmap"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(Seurat)
+library(here)
+```
+
+```{r}
+AT <- readRDS((here('explore/Figure_workflow/AT_workflow/fig3.RDS')))
+
+AT1_1_markers <- read.csv(here('explore/Figure_workflow/AT_workflow/AT1_1_markers.csv'))
+AT1_2_markers <- read.csv(here('explore/Figure_workflow/AT_workflow/AT1_2_markers.csv'))
+AT2_1_markers <- read.csv(here('explore/Figure_workflow/AT_workflow/AT2_1_markers.csv'))
+AT2_2_markers <- read.csv(here('explore/Figure_workflow/AT_workflow/AT2_2_markers.csv'))
+AT2_3_markers <- read.csv(here('explore/Figure_workflow/AT_workflow/AT2_3_markers.csv'))
+AT2_4_markers <- read.csv(here('explore/Figure_workflow/AT_workflow/AT2_4_markers.csv'))
+AT2_5_markers <- read.csv(here('explore/Figure_workflow/AT_workflow/AT2_5_markers_nocell.csv'))
+Every_markers <- read.csv(here('explore/Figure_workflow/AT_workflow/Every_markers.csv'))
+```
+
+```{r}
+Idents(AT) <- "new_submain"
+```
+
+
+```{r}
+top20 <- Every_markers %>% 
+ # group_by(cluster == "2") %>% 
+  top_n(n = 20, wt = avg_log2FC)
+
+
+DoHeatmap(AT, features = top20$gene) + 
+  theme(legend.position = 'bottom')  
+```
+
+```{r}
+AT1_1 <- subset(x = AT, subset = new_submain == "AT1_1")
+AT1_2 <- subset(x = AT, subset = new_submain == "AT1_2")
+
+AT2_1 <- subset(x = AT, subset = new_submain == "AT2_1")
+AT2_2 <- subset(x = AT, subset = new_submain == "AT2_2")
+AT2_3 <- subset(x = AT, subset = new_submain == "AT2_3")
+AT2_4 <- subset(x = AT, subset = new_submain == "AT2_4")
+AT2_5 <- subset(x = AT, subset = new_submain == "AT2_5")
+```
+
+```{r}
+features_covid <- c(
+'NTM',
+'KRT7',
+'MMP7',
+'AGER',
+'DST',
+'IFI27',
+'TAGLN',
+'ITGB6',
+'ANXA2',
+'LMO7',
+'CTSE',
+'ITGA2',
+'FN1',
+'CEACAM6',
+'PTGS2',
+'RTKN2',
+'LAMB3',
+'EDN1',
+'CAV1',
+'SOX4',
+'KRT19',
+'GPRC5A',
+'PMEPA1',
+'GLS',
+'TRAM1',
+'LAMC2',
+'EMP2',
+'COL1A1',
+'GAS6'
+)
+
+features_IPF <- c(
+'IGFBP7',
+'MMP7',
+'KRT7',
+'CAV1',
+'TAGLN',
+'FN1',
+'EMP2',
+'MDK',
+'IL32',
+'SOX4',
+'COL1A1',
+'TACSTD2',
+'AGER',
+'IFI27',
+'LGALS1',
+'CEACAM6',
+'PTGS2',
+'CST6',
+'DST',
+'ANXA2',
+'TUBA1A',
+'TM4SF1',
+'GPRC5A',
+'KRT19',
+'STMN1',
+'CYP4B1',
+'OCIAD2',
+'RTKN2',
+'TIMP3'
+)
+
+features_control <- c(
+'AGER',
+'CAV1',
+'EMP2',
+'CEACAM6',
+'RTKN2',
+'S100A10',
+'MYL9',
+'KRT7',
+'ANXA2',
+'TIMP3',
+'CAV2',
+'CD55',
+'ANXA3',
+'IGFBP7',
+'CYP4B1',
+'IFI27',
+'SPOCK2',
+'CLIC3',
+'NTM',
+'GPRC5A',
+'LMO7',
+'SCEL',
+'RGCC',
+'RAB11FIP1',
+'ANKRD29',
+'DST',
+'LAMA3',
+'TSPAN13',
+'TACSTD2'
+
+)
+```
+
+
+```{r}
+# AT1_1 COVID 
+DoHeatmap(AT1_1, features = features_covid) + 
+  theme(legend.position = 'bottom')  
+
+# AT1_1 IPF 
+DoHeatmap(AT1_1, features = features_IPF) + 
+  theme(legend.position = 'bottom')  
+
+# AT1_1 Control 
+DoHeatmap(AT1_1, features = features_control) + 
+  theme(legend.position = 'bottom')  
+```
+
+```{r}
+unique(AT1_1$Diagnosis)
+```
+
+
+```{r}
+AT1_1_covid <- subset(AT1_1, subset = Diagnosis == "COVID")
+```
+
+```{r}
+# AT1_1 COVID 
+DoHeatmap(AT1_1_covid, features = features_covid) + 
+  theme(legend.position = 'bottom')  
+
+# AT1_1 IPF 
+DoHeatmap(AT1_1_covid, features = features_IPF) + 
+  theme(legend.position = 'bottom')  
+
+# AT1_1 Control 
+DoHeatmap(AT1_1_covid, features = features_control) + 
+  theme(legend.position = 'bottom')  
+```
+
+
+
+
+
+

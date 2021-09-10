@@ -1,0 +1,128 @@
+---
+title: "06_Re_Findconservedmarkers"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(Seurat)
+library(here)
+```
+
+```{r}
+AT <- readRDS((here('explore/Figure_workflow/AT_workflow/fig3.RDS')))
+
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(22), "AT1_1", "NA")
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(10), "AT1_2", AT@meta.data$new_submain)
+
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(29), "AT2_1", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(3), "AT2_2", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(33), "AT2_3", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(17), "AT2_4", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(14), "AT2_5", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(21), "AT2_6", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(2), "AT2_7", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(28), "AT2_8", AT@meta.data$new_submain)
+
+DimPlot(AT, group.by = "new_submain", label = TRUE)
+```
+
+
+```{r}
+Idents(AT) <- "new_submain"
+levels(AT)
+```
+
+AT2_3
+AT2_6
+AT2_7
+AT2_8
+```{r}
+# AT1_1
+DefaultAssay(AT) <- "RNA"
+AT1_1_markers <- FindConservedMarkers(AT, ident.1 = 'AT1_1', grouping.var = "Diagnosis", verbose = T)
+write.csv(AT1_1_markers, 'AT1_1_markers.csv', row.names = TRUE)
+
+# AT1_2
+DefaultAssay(AT) <- "RNA"
+AT1_2_markers <- FindConservedMarkers(AT, ident.1 = 'AT1_2', grouping.var = "Diagnosis", verbose = T)
+write.csv(AT1_2_markers, 'AT1_2_markers.csv', row.names = TRUE)
+
+# AT2_1
+DefaultAssay(AT) <- "RNA"
+AT2_1_markers <- FindConservedMarkers(AT, ident.1 = 'AT2_1', grouping.var = "Diagnosis", verbose = T)
+write.csv(AT2_1_markers, 'AT2_1_markers.csv', row.names = TRUE)
+
+# AT2_2
+DefaultAssay(AT) <- "RNA"
+AT2_2_markers <- FindConservedMarkers(AT, ident.1 = 'AT2_2', grouping.var = "Diagnosis", verbose = T)
+write.csv(AT2_2_markers, 'AT2_2_markers.csv', row.names = TRUE)
+
+# AT2_3
+DefaultAssay(AT) <- "RNA"
+AT2_3_markers <- FindMarkers(AT, ident.1 = 'AT2_3', grouping.var = "Diagnosis", verbose = T)
+write.csv(AT2_3_markers, 'AT2_3_markers.csv', row.names = TRUE)
+
+# AT2_4
+DefaultAssay(AT) <- "RNA"
+AT2_4_markers <- FindConservedMarkers(AT, ident.1 = 'AT2_4', grouping.var = "Diagnosis", verbose = T)
+write.csv(AT2_4_markers, 'AT2_4_markers.csv', row.names = TRUE)
+
+# AT2_5
+DefaultAssay(AT) <- "RNA"
+AT2_5_markers <- FindConservedMarkers(AT, ident.1 = 'AT2_5', grouping.var = "Diagnosis", verbose = T)
+write.csv(AT2_5_markers, 'AT2_5_markers.csv', row.names = TRUE)
+
+# AT2_6
+DefaultAssay(AT) <- "RNA"
+AT2_6_markers <- FindMarkers(AT, ident.1 = 'AT2_6', grouping.var = "Diagnosis", verbose = T)
+write.csv(AT2_6_markers, 'AT2_6_markers.csv', row.names = TRUE)
+```
+
+```{r}
+# AT2_7
+DefaultAssay(AT) <- "RNA"
+AT2_7_markers <- FindMarkers(AT, ident.1 = 'AT2_7', grouping.var = "Diagnosis", verbose = T)
+write.csv(AT2_7_markers, 'AT2_7_markers.csv', row.names = TRUE)
+```
+
+```{r}
+# AT2_8
+DefaultAssay(AT) <- "RNA"
+AT2_8_markers <- FindAllMarkers(AT, ident.1 = 'AT2_8', grouping.var = "Diagnosis", verbose = T)
+write.csv(AT2_8_markers, 'AT2_8_markers.csv', row.names = TRUE)
+```
+
+```{r}
+AT1_1 <- subset(x = AT, subset = new_submain == "AT1_1")
+AT1_2 <- subset(x = AT, subset = new_submain == "AT1_2")
+
+AT2_1 <- subset(x = AT, subset = new_submain == "AT2_1")
+AT2_2 <- subset(x = AT, subset = new_submain == "AT2_2")
+AT2_3 <- subset(x = AT, subset = new_submain == "AT2_3")
+AT2_4 <- subset(x = AT, subset = new_submain == "AT2_4")
+AT2_5 <- subset(x = AT, subset = new_submain == "AT2_5")
+AT2_6 <- subset(x = AT, subset = new_submain == "AT2_6")
+AT2_7 <- subset(x = AT, subset = new_submain == "AT2_7")
+AT2_8 <- subset(x = AT, subset = new_submain == "AT2_8")
+
+```
+
+DoHeatmap(AT1_3, features = top40$gene) + 
+
+```{r}
+DoHeatmap(AT, features = "")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+

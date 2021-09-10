@@ -1,0 +1,111 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+
+refquery <- subset(x = refquery, subset = cell_type_submain == "AT1" | cell_type_submain == "AT2")
+```
+
+```{r}
+levels(refquery)
+unique(refquery$seurat_clusters)
+```
+
+```{r}
+Idents(object = refquery) <- "cell_type_submain"
+levels(refquery)
+```
+
+
+
+```{r}
+DimPlot(refquery, group.by = "cell_type_submain")
+DimPlot(refquery, group.by = "seurat_clusters")
+```
+
+
+```{r}
+VariableFeatures(object = refquery)
+```
+
+
+```{r}
+AT_genes <- c(
+"JCHAIN", "HBB", "CCL21", "IGHG1", "IGHA1", "SCGB1A1","CDC20B"
+)
+```
+
+```{r}
+DoHeatmap(refquery, 
+          features = AT_genes,
+         # group.by = "cell_type_submain",
+          angle = 45)
+```
+
+```{r}
+genes1 <- c("JCHAIN")
+
+DoHeatmap(refquery, 
+        #  features = genes1,
+         # group.by = "cell_type_submain",
+          angle = 45)
+```
+
+```{r}
+VariableFeatures(object = refquery)[1:30]
+```
+
+
+```{r}
+AT_genes <- c(
+"JCHAIN",   "HBB",      "CCL21",    "IGHG1",    "IGHA1" ,   "SCGB1A1",  "CDC20B",   "MSMB"  ,   "SCGB3A1" , "CCL17" ,   "IGKC"    
+,"BPIFB1",   "COL3A1",   "BPIFA1",   "DCN",      "COL1A2",   "HBA2",     "COL1A1",   "SPP1",     "PLA2G2A",  "LUM" ,     "CXCL10"  
+,"SAA1" ,    "SERPINB3" ,"FGG"  ,    "MZB1",     "TPSAB1" ,  "IGLC2"  ,  "MT1G",     "HP"   
+)
+
+DoHeatmap(refquery, 
+          features = AT_genes,
+         # group.by = "cell_type_submain",
+          angle = 45)
+```
+
+
+```{r}
+# markers0
+DefaultAssay(refquery) <- "RNA"
+markers_AT1 <- FindConservedMarkers(refquery, ident.1 = "AT1",  grouping.var = "Diagnosis", verbose = T)
+head(markers_AT1)
+write.csv(markers_AT1, 'markers_AT1.csv', row.names = TRUE)
+
+# markers1
+DefaultAssay(refquery) <- "RNA"
+markers_AT2 <- FindConservedMarkers(refquery, ident.1 = "AT2",  grouping.var = "Diagnosis", verbose = T)
+head(markers_AT2)
+write.csv(markers_AT2, 'markers_AT2.csv', row.names = TRUE)
+
+```
+
+```{r}
+a <- VariableFeatures(object = refquery)[1:30]
+write.csv(a, 'a.csv', row.names = TRUE)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+

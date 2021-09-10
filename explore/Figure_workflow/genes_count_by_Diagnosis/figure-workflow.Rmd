@@ -1,0 +1,70 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+
+s
+
+
+```{r}
+refquery@meta.data$batch <- substr(refquery@meta.data$cellbarcodes, 1, 4)
+```
+
+```{r}
+# Ctrl IAV-Stage1 IAV-Stage3 Stage1 Stage2 Stage4 Stage3
+refquery$Disease <- recode(refquery$Status, `Control` = "Ctrl", `ILD` = "IPF", COVID = "COV")
+
+```
+
+```{r}
+unique(refquery$cell_type_submain)
+```
+
+
+```{r}
+# 총 n count plasma_cell 
+num_plasma_cell <- refquery@meta.data %>% 
+  filter(cell_type_submain == 'Immune cells') %>% 
+  count() %>%  pull()
+
+# group by batch 
+plasma_count <- refquery@meta.data %>% 
+  filter(cell_type_submain == 'Immune cells') %>% 
+  group_by(Disease, batch) %>% 
+  count() %>% 
+  mutate(freq = n / num_plasma_cell)  # mutate = add new variable function 
+
+plasma_count %>% 
+  ggplot(aes(Disease, freq, color = Disease)) + geom_jitter(width = 0.05) + ylim(0, 0.4) + 
+  theme_bw() + 
+  scale_x_discrete(limits = c('Ctrl', 'IPF', 'COV')) + 
+  scale_color_manual(values = c('blue','orange','red')) + 
+  labs(title = 'Plasma', y = 'Frequency') + 
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(size = 1),
+        axis.ticks = element_line(size = 1),
+        panel.border = element_blank(),
+        legend.position = 'none',
+        plot.title = element_text(hjust = 0.5, size = 20),
+        axis.text.x = element_text(angle = 45, vjust =1, hjust = 1, size = 15, face = 'bold'),
+        axis.text.y = element_text(size = 15, face = 'bold')) + 
+  coord_fixed(ratio = 15)
+```
+

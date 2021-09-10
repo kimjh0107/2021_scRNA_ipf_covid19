@@ -1,0 +1,128 @@
+---
+title: "04_Find_cell_population_annotation"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+```{r}
+plan('multiprocess', workers = 20)
+options(future.globals.maxSize = 2e+05 * 1024^2)
+```
+
+#```{r}
+#gene_names <- refquery@assays$RNA@data@Dimnames[[1]]
+#library(stringr)
+#gene_names[str_detect(gene_names, 'PECAM')]
+#```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/04_Integrate_fill_null.RDS'))
+head(refquery)
+```
+
+
+# epithelial cells = (EPCAM)
+# endothelial cells = (PECAM-1 = CD31)
+# immune cells = (PTPRC = CD45)
+# Mesenchymal cells = 위에 3개가 없는 것들 
+
+# <Mesenchymal Cells>
+1) Smooth Muscle Cells - ACTA2, MYH11, PDGFRB
+2) Mesothelial Cells - WT1, UPK3B
+3) Myofibroblasts - LUM, PDGFRA, ACTA2, MYLK
+4) HAS1 High Fibroblasts - LUM, PDGFRA, HAS1, TWIST
+5) Fibroblasts - LUM, PDGFRA
+6) PLIN2+ Fibroblasts  - LUM, PDGFRA, PLIN2
+
+```{r}
+features_epithelial <- c("EPCAM")
+features_endothelial <- c("PECAM1")
+features_immune <- c("PTPRC")
+features_mesenchymal_1 <- c("ACTA2", "MYH11", "PDGFRB")
+features_mesenchymal_2 <- c("WT1", "UPK3B")
+features_mesenchymal_3 <- c("LUM", "PDGFRA", "ACTA2", "MYLK")
+features_mesenchymal_4 <- c("LUM", "PDGFRA", "HAS1", "TWIST")
+features_mesenchymal_5 <- c("LUM", "PDGFRA")
+features_mesenchymal_6 <- c("PLIN2")
+```
+
+```{r}
+FeaturePlot(refquery, features = features_epithelial)
+ggsave(here('figure/FeaturePlot_population_check/epithelial.pdf')) 
+```
+```{r}
+FeaturePlot(refquery, features = features_endothelial)
+ggsave(here('figure/FeaturePlot_population_check/endothelial.pdf')) 
+
+FeaturePlot(refquery, features = features_immune)
+ggsave(here('figure/FeaturePlot_population_check/immune.pdf')) 
+
+FeaturePlot(refquery, features = features_mesenchymal_1)
+ggsave(here('figure/FeaturePlot_population_check/emesenchymal_1.pdf')) 
+
+FeaturePlot(refquery, features = features_mesenchymal_2)
+ggsave(here('figure/FeaturePlot_population_check/emesenchymal_2.pdf')) 
+
+FeaturePlot(refquery, features = features_mesenchymal_3)
+ggsave(here('figure/FeaturePlot_population_check/emesenchymal_3.pdf')) 
+
+FeaturePlot(refquery, features = features_mesenchymal_4)
+ggsave(here('figure/FeaturePlot_population_check/emesenchymal_4.pdf')) 
+
+FeaturePlot(refquery, features = features_mesenchymal_5)
+ggsave(here('figure/FeaturePlot_population_check/emesenchymal_5.pdf')) 
+
+FeaturePlot(refquery, features = features_mesenchymal_6)
+ggsave(here('figure/FeaturePlot_population_check/emesenchymal_6.pdf')) 
+
+```
+
+
+```{r}
+DimPlot(refquery, reduction = "umap", group.by = "seurat_clusters", label = TRUE, label.size = 3, repel = TRUE) 
+DimPlot(refquery, reduction = "umap", group.by = "integrated_snn_res.0.8", label = TRUE, label.size = 3, repel = TRUE) 
+```
+
+- cluster Epithelial: 3, 29, 22, 10, 33, 17, 14, 21, 5, 2, 28
+- cluster Endothelial: 25, 15, 16, 20
+- cluster Immune: 0, 9, 1, 18, 6, 12, 4, 23, 32, 11, 8, 7, 30, 24, 26, 31, 19
+- cluster Mesenchymal: 13, 27, 34
+
+```{r}
+# population annotation
+refquery@meta.data$cell_type_main <- ifelse(refquery$integrated_snn_res.0.8 %in% c(3, 29, 22, 10, 33, 17, 14, 21, 5, 2, 28), 'Epithelial cells', 'NA')
+refquery@meta.data$cell_type_main <- ifelse(refquery$integrated_snn_res.0.8 %in% c(25, 15, 16, 20), 'Endothelial cells', refquery$cell_type_main)
+refquery@meta.data$cell_type_main <- ifelse(refquery$integrated_snn_res.0.8 %in% c(0, 9, 1, 18, 6, 12, 4, 23, 32, 11, 8, 7, 30, 24, 26, 31, 19), 'Immune cells', refquery$cell_type_main)
+refquery@meta.data$cell_type_main <- ifelse(refquery$integrated_snn_res.0.8 %in% c(13, 27, 34), 'Mesenchymal cells', refquery$cell_type_main)
+```
+
+```{r}
+head(refquery)
+```
+
+
+```{r}
+# Save object
+saveRDS(refquery, file = "Integrate_df.RDS")
+```
+
+```{r}
+# DimPlot
+DimPlot(refquery, reduction = "umap", group.by = "cell_type_main", label = TRUE, label.size = 3, repel = TRUE) 
+ggsave(here('figure/cell_popualtion.pdf')) 
+```
+

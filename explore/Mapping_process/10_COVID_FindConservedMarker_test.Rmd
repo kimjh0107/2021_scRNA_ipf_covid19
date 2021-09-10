@@ -1,0 +1,39 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+```
+
+
+```{r}
+ild <- readRDS(here('explore/IPF_SeuratObject.RDS'))
+head(ild)
+```
+
+
+```{r}
+covid <- readRDS(here('explore/RDS/COVID_Preprocessing.RDS'))
+```
+
+```{r}
+head(ild)
+head(covid)
+
+```
+
+```{r}
+features <- SelectIntegrationFeatures(object.list = covid)
+```
+

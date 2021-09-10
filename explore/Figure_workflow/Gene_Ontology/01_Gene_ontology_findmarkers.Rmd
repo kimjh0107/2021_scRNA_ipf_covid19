@@ -1,0 +1,64 @@
+---
+title: "01_Gene_ontology_findmarkers"
+output: html_document
+---
+
+```{r}
+library(slingshot)
+library(BUSpaRse)
+library(tidyverse)
+library(tidymodels)
+library(Seurrefquery)
+library(scales)
+library(viridis)
+library(Mrefqueryrix)
+library(SingleCellExperiment)
+library(here)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+```
+
+# 여기서 refquery1, refquery2 만 가져와서 findallconservedmarkers를 통해서 찾아보도록 하기 
+```{r}
+refquery <- subset(x = refquery, subset = cell_type_submain == "AT1" | cell_type_submain == "AT2")
+```
+
+```{r}
+refquery <- ScaleData(object = refquery)
+refquery <- RunPCA(object = refquery)
+refquery <- FindNeighbors(refquery, dims = 1:30)
+refquery <- FindClusters(refquery, resolution = 0.8)
+refquery <- RunUMAP(object = refquery, dims = 1:30)
+```
+
+```{r}
+DimPlot(refquery, group.by = "seurat_clusters", label = TRUE)
+DimPlot(refquery, group.by = "cell_type_submain", label = TRUE)
+```
+
+```{r}
+refquery_markers <- FindAllMarkers(refquery, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+refquery %>%
+    group_by(cluster) %>%
+    slice_max(n = 20, order_by = avg_log2FC)
+```
+
+```{r}
+refquery_markers %>%
+    group_by(cluster) %>%
+    slice_max(n = 10, order_by = avg_log2FC)
+```
+
+
+```{r}
+write.csv(refquery_markers, "AT1_AT2_markers.csv")
+```
+
+
+
+
+
+
+

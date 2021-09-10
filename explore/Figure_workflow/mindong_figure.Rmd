@@ -1,0 +1,151 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/05_Integrate_df_annotation.RDS'))
+```
+
+# Read in cell type annotations from frist rounds of subsets 
+```{r}
+immune <- read.csv(here('explore/RDS/celltype/Immune_celltype.csv'))
+Epithelial <- read.csv(here('explore/RDS/celltype/Epithelial_celltype'))
+Endothelial <- read.csv(here('explore/RDS/celltype/Endothelial_celltype.csv'))
+Mesenchyaml <- read.csv(here('explore/RDS/celltype/Mesenchymal_celltype.csv'))
+```
+
+```{r}
+head(refquery)
+```
+
+
+```{r}
+celltypes <- rbind.data.frame(immune, Epithelial, Endothelial, Mesenchyaml)
+refquery$cellbarcodes <- rownames(refquery@meta.data)
+refquery@meta.data <- left_join(refquery@meta.data, celltypes, by = 'cellbarcodes')
+
+rownames(refquery@meta.data) <- refquery$barcode
+
+refquery@meta.data$cell_type_submain <- ifelse(is.na(refquery@meta.data$cell_type_submain) == T, refquery@meta.data$cell_type_main, refquery$cell_type_submain)
+#refquery$group <- ifelse(refquery$group == 'cov', 'COVID-19', 'Control')
+#refquery$initial_clustering <- refquery$integrated_snn_res.0.8
+```
+
+```{r}
+head(refquery)
+```
+
+
+```{r}
+cells <- refquery@meta.data
+head(cells)
+```
+
+```{r}
+table(is.na(cells$X))
+table(is.na(cells$X.y))
+table(is.na(cells$Status))
+table(is.na(cells$Diagnosis))
+table(is.na(cells$cellbarcodes))
+```
+
+```{r}
+unique(cells$Status)
+```
+
+
+```{r}
+cells <- refquery@meta.data
+
+# Ctrl IAV-Stage1 IAV-Stage3 Stage1 Stage2 Stage4 Stage3
+cells$Disease <- recode(cells$Status, `Control` = "Ctrl", `ILD` = "IPF", COVID = "COV")
+cells
+```
+
+
+```{r}
+cells$batch <- substr(cells$cellbarcodes, 1, 4)
+```
+
+```{r}
+unique(cells$batch)
+```
+
+```{r}
+unique(cells$Disease)
+```
+
+
+```{r}
+cells
+# 총 n count plasma_cell 
+num_plasma_cell <- cells %>% 
+  filter(cell_type_submain == 'AT2') %>% 
+  count() %>%  pull()
+
+# group by batch 
+plasma_count <- cells %>% 
+  filter(cell_type_submain == 'AT2') %>% 
+  group_by(Disease, batch) %>% 
+  count() %>% 
+  mutate(freq = n / num_plasma_cell)  # mutate = add new variable function 
+
+plasma_count %>% 
+  ggplot(aes(Disease, freq, color = Disease)) + geom_jitter(width = 0.05) + ylim(0, 0.4) + 
+  theme_bw() + 
+  scale_x_discrete(limits = c('Ctrl', 'IPF', 'COV')) + 
+  scale_color_manual(values = c('blue','orange','red')) + 
+  labs(title = 'Plasma', y = 'Frequency') + 
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(size = 1),
+        axis.ticks = element_line(size = 1),
+        panel.border = element_blank(),
+        legend.position = 'none',
+        plot.title = element_text(hjust = 0.5, size = 20),
+        axis.text.x = element_text(angle = 45, vjust =1, hjust = 1, size = 15, face = 'bold'),
+        axis.text.y = element_text(size = 15, face = 'bold')) + 
+  coord_fixed(ratio = 15)
+```
+
+```{r}
+cells %>%
+  select(Disease, cell_type_submain.x)
+
+cell_count_df <- cells %>%
+  select(batch, Disease, cell_type_submain) %>%
+  group_by(batch, Disease, cell_type_submain) %>%
+  summarise(count_cell = n(), .groups = "drop") 
+  
+sum_cell_df <- cell_count_df %>%
+  group_by(batch) %>%
+  summarise(sum_cell = sum(count_cell))
+
+cell_count_df %>% left_join(sum_cell_df, by = 'batch') %>%
+  mutate(percentage = count_cell / sum_cell * 100) %>%
+  filter(cell_type_submain == 'AT2') %>%
+  ggplot(aes(Disease, percentage)) + geom_jitter()
+
+cell_count_df %>% filter(Disease == 'COV')
+```
+
+```{r}
+cell_count_df %>% filter(Disease == 'IPF')
+```
+

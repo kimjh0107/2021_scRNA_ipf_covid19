@@ -1,0 +1,36 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/05_Integrate_df_annotation.RDS'))
+```
+
+```{r}
+head(refquery)
+table(is.na(refquery$orig.ident))
+table(is.na(refquery$cellbarcodes))
+# 제거를 진행을 한 다음에 다시 새롭게 cellbarcodes 컬럼을 만들어서 진행을 해주도록 한다. 
+refquery@meta.data$cellbarcodes <- NULL
+
+# make new cellbarcodes columns 
+refquery@meta.data$cellbarcodes <- rownames(refquery@meta.data)
+table(is.na(refquery$cellbarcodes))
+```
+
+```{r}
+saveRDS(refquery, file = "05_New_Integrate_df.RDS")
+```
+
+```{r}
+table(is.na(refquery@meta.data))
+```
+
+

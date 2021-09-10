@@ -1,0 +1,46 @@
+---
+title: "8_New_covid_findcluster"
+output: html_document
+---
+
+# 2가지에 대해서 전부 진행을 해봐야 될 듯 
+1) 우선은 지금 단계에서 바로 runumap을 진행해본 다음에 합쳐줘보는 방법? 
+2) 아니면 애초에 처음부터 다 진행을 해본다음에 결과를 한번 비교해보는것 
+
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+
+covid <- readRDS(here('explore/RDS/COVID_h5_to_SeuratObject_merge.RDS'))
+
+# covid <- RunPCA(covid)  -> mapping 과정에서 pca는 진행을 했으니깐 이에 대해서는 skip 
+covid <- PercentageFeatureSet(object = covid, pattern = "^MT-", col.name = "percent.mt")
+covid <- subset(covid, subset = nFeature_RNA > 1000 & percent.mt < 25)
+covid <- SCTransform(covid, method = "glmGamPoi", vars.to.regress = "percent.mt", verbose = FALSE)
+
+covid <- RunPCA(covid)
+covid <- RunUMAP(covid, dims = 1:30, verbose = FALSE, return.model=TRUE)
+covid <- FindNeighbors(covid, dims = 1:30, verbose = FALSE)
+covid <- FindClusters(covid, verbose = FALSE)
+
+saveRDS(covid, file = "COVID_try_preprocessing_again.RDS")
+
+```
+
+```{r}
+head(covid)
+```
+
+
+
+
+
+

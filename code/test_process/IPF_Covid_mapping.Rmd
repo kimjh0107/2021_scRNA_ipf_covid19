@@ -1,0 +1,224 @@
+---
+title: "IPF_1_data_explore"
+output:
+  github_document: default
+  pdf_document: default
+  html_document: default
+  
+---
+
+# [ 전체적인 workflow ]
+
+1. Read10X 로 읽어준 다음에 Seurat data format으로 변경해주도록 하기 
+1. metadata.csv 파일을 넣어줘서 새로운 feature들 생성해주기 
+1. 이후 QC 진행한 이후 integration 준비해주도록 하기 
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+```
+
+```{r}
+# Load the IPF dataset by Read10X
+
+setwd("~/R/scRNA_IPF_data/data/GSE135893_IPF_1")
+ild_data <- Read10X(data.dir = 'GSE135893_seurat/', gene.column=1) 
+
+# gene.colum = 1 을 하기 전에는 Error in `[.data.frame`(feature.names, , gene.column) :    undefined columns selected error 발생 
+# no second column in your genes.tsv file 일수도 있기에 -> gene.colum = 1 을 통해서 Read10X 생성 
+# 압축되어있는 파일 상태로 다운 받아본 다음에 다시 진행 
+```
+
+```{r}
+# make a SeuratObject 
+ild <- CreateSeuratObject(ild_data,
+                          project = "scRNA_lung", # 이렇게 변경은 하고 아직 run은 돌리지 않음 
+                          min.features = 200)
+
+# Warning: Feature names cannot have underscores ('_'), replacing with dashes ('-')
+
+```
+```{r}
+metadata <- read_csv("metadata.csv")
+ild <- AddMetaData(ild, rownames(ild@meta.data), col.name = "cellbarcodes")
+ild <- subset(x = ild, subset = cellbarcodes %in% metadata$cellbarcodes)
+cells <- ild@meta.data
+cells <- cells %>% left_join(metadata %>% select(Diagnosis, Sample_Name, Sample_Source, Status, celltype, population, cellbarcodes), by = "cellbarcodes")
+cells
+```
+
+```{r}
+ild <- AddMetaData(ild, cells$Diagnosis, col.name = "Diagnosis")
+ild <- AddMetaData(ild, cells$Sample_Name, col.name = "Sample_Name")
+ild <- AddMetaData(ild, cells$Sample_Source, col.name = "Sample_Source")
+ild <- AddMetaData(ild, cells$Status, col.name = "Status")
+ild <- AddMetaData(ild, cells$celltype, col.name = "celltype")
+ild <- AddMetaData(ild, cells$population, col.name = "population")
+ild@meta.data
+```
+
+```{r}
+ild <- SCTransform(object = ild, method = "glmGamPoi", verbose = T)
+```
+
+```{r}
+head(ild)
+```
+
+perform dimensionality reduction by PCA and UMAP embedding 
+```{r}
+ild <- RunPCA(ild, verbose = TRUE)
+```
+
+```{r}
+ild <- RunUMAP(ild, dims = 1: 30, verbose = TRUE)
+```
+
+```{r}
+ild <- FindNeighbors(ild, dims = 1:30, verbose = TRUE)
+```
+
+```{r}
+ild <- FindClusters(ild, verbose = TRUE)
+```
+
+```{r}
+p1 <- DimPlot(ild, reduction = "umap", group.by = "celltype", label = TRUE, label.size = 3, repel = TRUE) + NoLegend() + coord_fixed(ratio = 0.5)
+p2 <- DimPlot(ild, reduction = "umap", group.by = "Diagnosis", label = TRUE, label.size = 3, repel = TRUE) + coord_fixed(ratio = 0.5)
+p3 <- DimPlot(ild, reduction = "umap", group.by = "population", label = TRUE, label.size = 3, repel = TRUE) + coord_fixed(ratio = 0.5)
+
+p1
+p2
+p3
+# repelt = True -> plot 글씨더 이쁘게
+```
+```{r}
+
+```
+
+covid data 
+```{r}
+setwd("~/R/scRNA_IPF_data/data")
+covid_data <- Read10X(data.dir = 'GSE149689_covid_kaist/GSE149689/', gene.column=1)
+
+# IPF data와 동일하게 min,feautures 지정해줘서 진행 
+covid <- CreateSeuratObject(covid_data,
+                            project = "scRNA_covid",
+                            min.features = 200)
+
+# sample filtering을 통해서 covid 환자에 대한 데이터만 얻기 위한 과정 
+cell_barcodes <- rownames(covid@meta.data)
+
+covid$sample <- covid@meta.data %>% 
+  mutate(cell_barcodes = rownames(.)) %>% 
+  mutate(sample = str_sub(cell_barcodes, 18)) %>% select(sample) 
+
+# 필요한 covid data ( 나머지 전부 삭제 ) 
+covid <- covid %>% 
+  subset(sample != "3")
+
+covid <- covid %>% 
+  subset(sample = c("1","2","9"))
+
+
+covid <- covid %>% 
+  subset(sample != "4")
+
+covid <- covid %>% 
+  subset(sample != "5")
+
+covid <- covid %>% 
+  subset(sample != "6")
+
+covid <- covid %>% 
+  subset(sample != "7")
+
+covid <- covid %>% 
+  subset(sample != "8")
+
+covid <- covid %>% 
+  subset(sample != "13")
+
+covid <- covid %>% 
+  subset(sample != "14")
+
+covid <- covid %>% 
+  subset(sample != "19")
+
+unique(covid$sample)
+
+# qc -> percent.mt ( 근데 결과가 0, 아마 사전에 처리된걸수도?) 
+covid <- PercentageFeatureSet(object = covid, pattern = "^MT-", col.name = "percent.mt")
+
+head(covid)
+```
+
+covid data 불러왔으니 mapping 작업을 실시 
+```{r}
+covid <- SCTransform(object = covid, , method = "glmGamPoi", verbose = T)
+head(covid)
+```
+
+
+```{r}
+covid <- RunPCA(covid, verbose = TRUE)
+covid <- RunUMAP(covid, dims = 1: 30, verbose = TRUE)
+covid <- FindNeighbors(covid, dims = 1:30, verbose = TRUE)
+covid <- FindClusters(covid, verbose = TRUE)
+```
+
+
+
+```{r}
+anchors <- FindTransferAnchors(
+  reference = ild,
+  query = covid,
+  normalization.method = "SCT",
+  reference.reduction = "spca",
+  dims = 1:30
+)
+
+# Error in umi[residual.features, , drop = FALSE] : invalid or not-yet-implemented 'Matrix' subsetting
+# tutorial = 'dfCMatrix' , my data = 'dgCMatrix' 
+
+
+
+```
+
+```{r}
+class(covid@assays$RNA@data)
+print("------------------------------------")
+class(ild@assays$RNA@data)
+```
+
+
+```{r}
+rm(reference)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

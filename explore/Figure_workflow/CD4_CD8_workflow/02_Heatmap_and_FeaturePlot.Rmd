@@ -1,0 +1,76 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(Seurat)
+library(here)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+```
+
+```{r}
+DimPlot(refquery, group.by = "cell_type_main")
+DimPlot(refquery, group.by = "cell_type_submain")
+```
+
+```{r}
+Immune <- subset(refquery, subset = cell_type_main == "Immune cells")
+unique(Immune$cell_type_submain)
+```
+
+```{r}
+CD <- subset(Immune, subset = cell_type_submain == "CD4 Tcell" | cell_type_submain == "CD8 Tcell")
+unique(CD$cell_type_submain)
+```
+
+```{r}
+DimPlot(CD, group.by = "cell_type_submain")
+```
+'TNF', 'IL4', 'IL13', 'IL5', 'IL17A', 'IL17F', 'IL22', 'IL21', 'IL4', 'IL10', 'IL35'
+
+
+```{r}
+Idents(CD) <- "cell_type_submain"
+```
+
+```{r}
+DoHeatmap(CD, features = c('TNF', 'IL4', 'IL13', 'IL5', 'IL17A', 'IL17F', 'IL22', 'IL21', 'IL4', 'IL10'))
+```
+
+
+```{r}
+#features <-  c( 'IL4')
+
+FeaturePlot(CD, features = "IL4")
+FeaturePlot(CD, features = "IL13")
+FeaturePlot(CD, features = "IL5")
+FeaturePlot(CD, features = "IL17A")
+FeaturePlot(CD, features = "IL17F")
+FeaturePlot(CD, features = "IL22")
+FeaturePlot(CD, features = "IL21")
+FeaturePlot(CD, features = "IL4")
+FeaturePlot(CD, features = "IL10")
+FeaturePlot(CD, features = "IL35")
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

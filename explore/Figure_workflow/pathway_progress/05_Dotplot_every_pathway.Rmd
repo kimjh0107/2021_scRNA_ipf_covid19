@@ -1,0 +1,196 @@
+---
+title: "05_Dotplot_every_pathway"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+```{r}
+refquery <- readRDS(here("explore/RDS/07_df.RDS"))
+```
+
+```{r}
+refquery <- subset(x = refquery, subset = Diagnosis == "IPF" | Diagnosis == "COVID")
+Idents(refquery) <- "cell_type_submain"
+```
+
+```{r}
+genes_list <- c(
+# TGF-B
+'BMP2',
+'BMP5',
+'COMP',
+'DCN',
+'FST',
+'ID1',
+'ID3',
+'ID4',
+'IFNG',
+'INHBA',
+'LTBP1',
+'MYC',
+'SMAD6',
+'THBS1',
+'THBS2',
+'THBS4',
+'TNF',
+# WNT
+'CAMK2B',
+'CCND1',
+'CCND2',
+'CHP2',
+'DKK1',
+'DKK2',
+'MAPK10',
+'MMP7',
+'PPP2CB',
+'RUVBL1',
+'SFRP1',
+'SFRP2',
+'SFRP4',
+'SOX17',
+'WIF1',
+'WNT2',
+
+# Notch
+'HES1',
+'PSEN2',
+'PSENEN',
+'RFNG',
+'SNW1',
+
+# fibrosis related gene 
+'CTHRC1', 
+'COL1A1', 
+'COL3A1',
+'PDGFRA',
+'ELN', 
+'ACTA2',
+
+'SPINT2',
+'FGFR4',
+'GPC3', 
+'NPNT', 
+'CES1',
+
+'SERPINF1', 
+'PI16'
+)
+
+pathway_name <- c(
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+
+'WNT Signaling Pathway',
+'WNT Signaling Pathway',
+'WNT Signaling Pathway',
+'WNT Signaling Pathway',
+'WNT Signaling Pathway',
+'WNT Signaling Pathway',
+'WNT Signaling Pathway',
+'WNT Signaling Pathway',
+'WNT Signaling Pathway',
+'WNT Signaling Pathway',
+'WNT Signaling Pathway',
+'WNT Signaling Pathway',
+'WNT Signaling Pathway',
+'WNT Signaling Pathway',
+'WNT Signaling Pathway',
+'WNT Signaling Pathway',
+
+'NOTCH Signaling Pathway',
+'NOTCH Signaling Pathway',
+'NOTCH Signaling Pathway',
+'NOTCH Signaling Pathway',
+'NOTCH Signaling Pathway',
+
+"Fibrosis Related Genes",
+"Fibrosis Related Genes",
+"Fibrosis Related Genes",
+"Fibrosis Related Genes",
+"Fibrosis Related Genes",
+"Fibrosis Related Genes",
+"Fibrosis Related Genes",
+"Fibrosis Related Genes",
+"Fibrosis Related Genes",
+"Fibrosis Related Genes",
+"Fibrosis Related Genes",
+"Fibrosis Related Genes",
+"Fibrosis Related Genes"
+
+)
+
+
+genes <- data.frame(genes_list, pathway_name)
+genes
+```
+
+```{r}
+Idents(refquery) <- "cell_type_submain"
+```
+
+
+
+ggsave(here("figure/Pathway_work/TGF-B.pdf"))
+
+```{r}
+DotPlot(refquery, features = genes$genes_list, cols = c("blue", "red"), dot.scale = 5, split.by = "Diagnosis", assay = "RNA") +
+  guides(color = guide_colorbar(title = "Gene Average Expression")) + 
+  facet_grid(~genes$pathway_name,
+             scales = "free",
+             space = "free") + 
+  guides(color = guide_colorbar(title = 'Average Expression')) + 
+  theme_classic() + 
+  RotatedAxis() + 
+  labs(title = "Pathway") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        axis.text.y = element_text(vjust = 1, hjust = 1, size =8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 12, face = 'bold'), legend.position = 'right') 
+
+ggsave(here("figure/Pathway_work/Every_pathway.pdf"))
+
+```
+
+
+```{r}
+DotPlot(refquery, features = genes$genes_list, cols = c("blue", "red"), dot.scale = 5, split.by = "Diagnosis", assay = "RNA") +
+  facet_grid(~genes$pathway_name,
+             scales = "free",
+             space = "free") + 
+#  guides(color = guide_colorbar(title = 'Average Expression')) + 
+  theme_classic() + 
+  RotatedAxis() + 
+  labs(title = "Control Cell proportion") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        axis.text.y = element_text(vjust = 1, hjust = 1, size =8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 10, face = 'bold'), legend.position = 'right') +
+  guides(color = guide_colorbar(title = "Gene Average Expression")) 
+```
+
+
+
+

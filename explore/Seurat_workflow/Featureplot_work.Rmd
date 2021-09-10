@@ -1,0 +1,178 @@
+---
+title: "featurePlot"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+
+```{r}
+Epithelial <- readRDS(here('explore/RDS/Epithelial_cluster.RDS'))
+head(Epithelial)
+```
+
+```{r}
+feauture_test = c("SFTPC")
+RidgePlot(Epithelial, features = feauture_test, ncol = 2)
+```
+
+
+```{r}
+features_AT1 <- c("CNLC5", "AGER", "PDPN")
+features_AT2 <- c("SFTPC", "SFTPB", "SFTPD", "ETV5", "PDPN", "MUC1")
+features_late_AT1 <- c("CAV1")
+features_Club <- c("CYP2F2", "SCGB3A2", "CCKAR")
+features_Ciliated <- c("FOXJ1", "TUBB1", "TP73", "CCDC78")
+features_Basal <- c("KRT5", "KRT14", "TP63", "DAPL1")
+features_Goblet <- c("MUC5B", "MUC5AC", "SPDEF")
+features_Serous <- c("PRR4", "LPO", "LTF")
+features_lonocyte <- c("CFTR", "FOXI1", "ASCL3")
+features_Neuroendocrine <- c("CALCA", "CHGA", "ASCL1")
+features_Tuft <- c("DCLK1", "ASCL2")
+features_Alveolar_type1 <- c("AGER", "PDPN", "CLIC5")
+features_Alveolar_type2 <- c("SFTPC", "SFTPB", "SFTPD", "MUC1", "ETV5")
+
+
+
+FeaturePlot(Epithelial, features = features_AT1)
+ggsave(here('figure/Epithelial/Epithelial_AT1_cluster.pdf')) 
+
+FeaturePlot(Epithelial, features = features_AT2)
+ggsave(here('figure/Epithelial/Epithelial_AT2.pdf')) 
+
+FeaturePlot(Epithelial, features = features_late_AT1)
+ggsave(here('figure/Epithelial/Epithelial_late_AT1.pdf')) 
+
+FeaturePlot(Epithelial, features = features_Club)
+ggsave(here('figure/Epithelial/Epithelial_Club.pdf'))
+
+FeaturePlot(Epithelial, features = features_Ciliated)
+ggsave(here('figure/Epithelial/Epithelial_Ciliated.pdf'))
+
+FeaturePlot(Epithelial, features = features_Basal)
+ggsave(here('figure/Epithelial/Epithelial_Basal.pdf'))
+
+FeaturePlot(Epithelial, features = features_Goblet)
+ggsave(here('figure/Epithelial/Epithelial_Goblet.pdf'))
+
+FeaturePlot(Epithelial, features = features_Serous)
+ggsave(here('figure/Epithelial/Epithelial_Serous'))
+
+FeaturePlot(Epithelial, features = features_lonocyte)
+ggsave(here('figure/Epithelial/Epithelial_lonocyte.pdf'))
+
+FeaturePlot(Epithelial, features = features_Neuroendocrine)
+ggsave(here('figure/Epithelial/Epithelial_Neuroendocrine.pdf'))
+
+FeaturePlot(Epithelial, features = features_Tuft)
+ggsave(here('figure/Epithelial/Epithelial_Tuft.pdf'))
+
+FeaturePlot(Epithelial, features = features_Alveolar_type1)
+ggsave(here('figure/Epithelial/Epithelial_Alveolar_type1.pdf'))
+
+FeaturePlot(Epithelial, features = features_Alveolar_type2)
+ggsave(here('figure/Epithelial/Epithelial_Alveolar_type2.pdf'))
+```
+
+```{r}
+Immune <- readRDS(here('explore/RDS/Immune_cluster.RDS'))
+head(Immune)
+```
+
+```{r}
+features_Bcell <- c("CD19", "CD24", "MS4A1", "CD79A")
+features_Plasma <- c("CD27", "CD79A", "SLAMF7")
+features_CD8_mem_Tcell <- c("CD3E", "CD8A", "GZMH", "DUSP2")
+features_CD8_naive_Tcell <- c("CD3E", "CD8", "GZMH" ,"GZMB")
+features_CD4_mem_cell <- c("CD3E", "CD8", "COTL1", "LDHB")
+features_CD4_naive_Tcell <- c("CD3E", "CD4", "CCR7", "LEF1")
+features_NK <- c("KLRD1", "NKG7", "TYROBP", "CD56")
+features_NK_Tcell <- c("CD3E", "CD8A", "FCER1G", "TYROBP")
+features_Neutrophil <- c("S100A8", "S100A9", "IFITM2", "FCGR3B")
+features_Mast <- c("MS4A2", "CPA3", "TPSAB1")
+features_Eosinophil <- c("SIGLEC8")
+features_Megakaryocte <- c("NRGN", "PPBP", "PF4", "OST4")
+features_Macrophage <- c("MARCO", "MSR1", "MRC1")
+features_Dendritic_plasmacytoid <- c("LILRB4", "IRF8", "LILRA4")
+features_Dendritic_myeloid_1 <- c("MHCII", "CLEC9A", "LAMP3")
+features_Dendritic_myeloid_2 <- c("MHCII", "CD1C", "PLD4")
+features_Dendritic_classical_Monocyte <- c("CD14", "S100A8", "CD16")
+features_Dendritic_Intermediate_Monocyte <- c("CD14", "S100A8", "CD16")
+features_Dendritic_nonclassical_Monocyte <- c("CD16")
+```
+
+```{r}
+FeaturePlot(Immune, features = features_Bcell)
+ggsave(here('figure/Immune/Immune_Bcell.pdf'))
+
+FeaturePlot(Immune, features = features_Plasma)
+ggsave(here('figure/Immune/Immune_Plasma.pdf'))
+
+FeaturePlot(Immune, features = features_CD8_mem_Tcell)
+ggsave(here('figure/Immune/Immune_CD8_mem_Tcell.pdf'))
+
+FeaturePlot(Immune, features = features_CD8_naive_Tcell)
+ggsave(here('figure/Immune/Immune_CD8_naive_Tcell.pdf'))
+
+FeaturePlot(Immune, features = features_CD8_mem_Tcell)
+ggsave(here('figure/Immune/Immune_CD8_mem_Tcell.pdf'))
+
+FeaturePlot(Immune, features = features_CD4_mem_cell)
+ggsave(here('figure/Immune/Immune_CD4_mem_cell.pdf'))
+
+FeaturePlot(Immune, features = features_CD4_naive_Tcell)
+ggsave(here('figure/Immune/Immune_CD4_naive_Tcell.pdf'))
+
+FeaturePlot(Immune, features = features_NK)
+ggsave(here('figure/Immune/Immune_NK.pdf'))
+
+FeaturePlot(Immune, features = features_NK_Tcell)
+ggsave(here('figure/Immune/Immune_NK_Tcell.pdf'))
+
+FeaturePlot(Immune, features = features_Neutrophil)
+ggsave(here('figure/Immune/Immune_Neutrophil.pdf'))
+
+FeaturePlot(Immune, features = features_Mast)
+ggsave(here('figure/Immune/Immune_Mast.pdf'))
+
+FeaturePlot(Immune, features = features_Eosinophil)
+ggsave(here('figure/Immune/Immune_Eosinophil.pdf'))
+
+FeaturePlot(Immune, features = features_Megakaryocte)
+ggsave(here('figure/Immune/Immune_Megakaryocte.pdf'))
+
+FeaturePlot(Immune, features = features_Macrophage)
+ggsave(here('figure/Immune/Immune_Macrophage.pdf'))
+
+FeaturePlot(Immune, features = features_Dendritic_plasmacytoid)
+ggsave(here('figure/Immune/Immune_Dendritic_plasmacytoid.pdf'))
+```
+
+```{r}
+FeaturePlot(Immune, features = features_Dendritic_classical_Monocyte)
+ggsave(here('figure/Immune/Immune_features_Dendritic_classical_Monocyte.pdf'))
+
+FeaturePlot(Immune, features = features_Dendritic_Intermediate_Monocyte)
+ggsave(here('figure/Immune/Immune_features_Dendritic_Intermediate_Monocyte.pdf'))
+
+FeaturePlot(Immune, features = features_Dendritic_nonclassical_Monocyte)
+ggsave(here('figure/Immune/Immune_features_Dendritic_nonclassical_Monocyte.pdf'))
+```
+
+
+
+
+

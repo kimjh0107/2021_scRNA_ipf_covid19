@@ -1,0 +1,88 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/05_Integrate_df_annotation.RDS'))
+
+Immune <- read.csv(here('explore/RDS/celltype/Immune_celltype.csv'))
+Endothelial <- read.csv(here('explore/RDS/celltype/Endothelial_celltype.csv'))
+Epithelial <- read.csv(here('explore/RDS/celltype/Epithelial_celltype'))
+Mesenchymal <- read.csv(here('explore/RDS/celltype/Mesenchymal_celltype.csv'))
+```
+
+
+```{r}
+celltypes <- rbind.data.frame(Immune, Endothelial,Epithelial ,Mesenchymal)
+head(celltypes)
+```
+
+```{r}
+head(refquery)
+```
+
+df$number<-NULL
+
+
+```{r}
+refquery@meta.data$cellbarcodes <- NULL
+head(refquery)
+```
+
+```{r}
+refquery@meta.data$cellbarcodes <- rownames(refquery@meta.data)
+refquery@meta.data <- left_join(refquery@meta.data, celltypes, by = 'cellbarcodes')
+rownames(refquery@meta.data) <- refquery@meta.data$cellbarcodes
+```
+
+```{r}
+refquery@meta.data$cell_type_submain <- ifelse(is.na(refquery@meta.data$cell_type_submain) == T, refquery@meta.data$cell_type_main, refquery$cell_type_submain)
+```
+
+```{r}
+head(refquery)
+```
+
+```{r}
+cells <- refquery@meta.data
+```
+
+```{r}
+cells$Disease <- recode(cells$Status, `Control` = "Ctrl", `ILD` = "IPF", COVID = "COV")
+
+```
+
+```{r}
+unique(refquery@meta.data$orig.ident)
+```
+
+
+
+
+
+
+```{r}
+cells %>%
+  select(Disease, cell_type_submain)
+
+cell_count_df <- cells %>%
+  select(orig.ident, Disease, cell_type_submain) %>%
+  group_by(orig.ident, Disease, cell_type_submain) %>%
+  summarise(count_cell = n(), .groups = "drop") 
+  
+sum_cell_df <- cell_count_df %>%
+  group_by(orig.ident) %>%
+  summarise(sum_cell = sum(count_cell))
+
+cell_count_df %>% left_join(sum_cell_df, by = 'orig.ident') %>%
+  mutate(percentage = count_cell / sum_cell * 100) %>%
+  filter(cell_type_submain == 'AT2') %>%
+  ggplot(aes(Disease, percentage)) + geom_jitter()
+
+cell_count_df %>% filter(Disease == 'COV')
+```

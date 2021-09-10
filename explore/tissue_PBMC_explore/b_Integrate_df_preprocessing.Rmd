@@ -1,0 +1,156 @@
+---
+title: "Figure 1A"
+output: html_document
+output: github_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+```
+
+# covid clustering을 진행하기 전에 integrated -> refquery
+```{r}
+# group.by = population 
+DimPlot(refquery, reduction = "umap", group.by = "population", label = TRUE, label.size = 3, repel = TRUE) + NoLegend()
+DimPlot(refquery, reduction = "umap", group.by = "Status", label = TRUE, label.size = 3, repel = TRUE) + NoLegend()
+DimPlot(refquery, reduction = "umap", group.by = "celltype", label = TRUE, label.size = 3, repel = TRUE) + NoLegend()
+DimPlot(refquery, reduction = "umap", group.by = "seurat_clusters", label = TRUE, label.size = 3, repel = TRUE) + NoLegend()
+```
+
+# covid clustering을 진행한 데이터를 integrated 한 이후 DimPlot 비교 
+```{r}
+
+#merge reference and query
+ild$id <- 'reference'
+covid$id <- 'query'
+integrate_df <- merge(ild, covid)
+integrate_df[["pca"]] <- merge(ild[["pca"]], covid[["ref.pca"]])
+integrate_df <- RunUMAP(integrate_df, reduction = 'pca', dims = 1:50)
+DimPlot(integrate_df, group.by = 'id', shuffle = TRUE)
+
+```
+
+```{r}
+head(integrate_df)
+```
+
+new_population이라는 새로운 feauture를 만들어 immune cell 만 filtering 
+```{r}
+cell <- integrate_df
+cell$new_population <- recode(cell$population, "Epithelial" = "delete", "Endothelial" = "delete", "Mesenchymal" = "delete")
+cell@meta.data <- cell@meta.data[!(cell@meta.data$new_population == "delete"), ]
+unique(cell@meta.data$new_population)
+```
+
+
+```{r}
+#cell@meta.data <- cell@meta.data[droplevels(cell@meta.data$new_population == "delete"), ]
+#head(cell)
+```
+
+
+
+
+
+
+
+
+```{r}
+DimPlot(cell, reduction = "umap", group.by = "new_population", label = TRUE, label.size = 3, repel = TRUE)
+DimPlot(cell, reduction = "umap", group.by = "population", label = TRUE, label.size = 3, repel = TRUE) 
+DimPlot(cell, reduction = "umap", group.by = "Status", label = TRUE, label.size = 3, repel = TRUE) 
+DimPlot(cell, reduction = "umap", group.by = "celltype", label = TRUE, label.size = 3, repel = TRUE) + NoLegend()
+DimPlot(cell, reduction = "umap", group.by = "seurat_clusters", label = TRUE, label.size = 3, repel = TRUE) + NoLegend()
+```
+```{r}
+head(cell)
+head(covid)
+unique(cell@meta.data$orig.ident)
+# 왜 covid orig.ident는 사라진건가? 아니면 기존에 있던 scRNA가 null 값으로 변경된건지? 왜바뀌는건지 
+```
+
+```{r}
+DimPlot(cell, reduction = "umap", group.by = "Status", label = TRUE, label.size = 3, repel = TRUE) 
+```
+
+```{r}
+cell@meta.data$Status[is.na(cell@meta.data$Status)] <- "Covid"
+unique(cell@meta.data$Status)
+```
+
+```{r}
+DimPlot(cell, reduction = "umap", group.by = "Status", label = TRUE, label.size = 3, repel = TRUE) 
+```
+
+
+
+cell <- integrate_df
+cell$new_population <- recode(cell$population, "Epithelial" = "delete", "Endothelial" = "delete", "Mesenchymal" = "delete")
+cell@meta.data <- cell@meta.data[!(cell@meta.data$new_population == "delete"), ]
+unique(cell@meta.data$new_population)
+
+
+
+
+```{r}
+unique(cell@meta.data$population)
+unique(cell@meta.data$Diagnosis)
+unique(cell@meta.data$Status)
+unique(cell@meta.data$seurat_clusters)
+
+
+
+```
+```{r}
+head(cell)
+```
+
+
+
+
+
+```{r}
+
+integrate_df$new_population <- recode(integrate_df$population, "Epithelial" = "delete", "Endothelial" = "delete", "Mesenchymal" = "delete")
+
+unique(integrate_df$new_population)
+```
+
+
+# 값이 delete 로 되어 있는 것들 우선적으로 삭제 
+delete <- subset(integrate_df@meta.data, integrate_df@meta.data$new_population == "delete")
+head(delete)
+unique(delete$new_population)
+
+
+
+
+
+
+
+
+
+# Ctrl IAV-Stage1 IAV-Stage3 Stage1 Stage2 Stage4 Stage3
+cells_test$Disease <- recode(cells_test$Stage, `IAV-Stage1` = "IAV", `IAV-Stage3` = "IAV", Stage1 = "COV", Stage2 = "COV", Stage3 = "COV", Stage4 = "COV")
+head(cells_test)
+unique(cells_test$Disease)
+
+# 값 포함되어 있는 것 삭제 
+cells_test <- cells_test[!(cells_test$Disease == "IAV"), ]
+unique(cells_test$Disease)
+
+cells_test$Disease = cells_test[droplevels(cells_test$Disease == "IAV"), ]
+head(cells_test)
+
+
+
+
+

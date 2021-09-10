@@ -1,0 +1,181 @@
+---
+title: "04_Every_Heatmap_by_AT_new_cluster"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(Seurat)
+library(here)
+```
+
+```{r}
+fig3 <- readRDS(here('explore/Figure_workflow/AT_workflow/fig3.RDS'))
+fig3_markers <- read.csv(here('explore/Figure_workflow/AT_workflow/AT_specific_findallmarkers.csv'))
+```
+
+```{r}
+unique(fig3$new_submain)
+```
+
+```{r}
+AT1_1 <- subset(x = fig3, subset = new_submain == "AT1_1")
+AT1_2 <- subset(x = fig3, subset = new_submain == "AT1_2")
+AT1_3 <- subset(x = fig3, subset = new_submain == "AT1_3")
+
+AT2_1 <- subset(x = fig3, subset = new_submain == "AT2_1")
+AT2_2 <- subset(x = fig3, subset = new_submain == "AT2_2")
+AT2_3 <- subset(x = fig3, subset = new_submain == "AT2_3")
+AT2_4 <- subset(x = fig3, subset = new_submain == "AT2_4")
+AT2_5 <- subset(x = fig3, subset = new_submain == "AT2_5")
+AT2_6 <- subset(x = fig3, subset = new_submain == "AT2_6")
+AT2_7 <- subset(x = fig3, subset = new_submain == "AT2_7")
+```
+
+```{r}
+# ----------------------------------------------- AT1 ----------------------------------------------------------
+# AT1_1 / cluster 22 
+top40 <- fig3_markers %>% 
+  group_by(cluster == "22") %>% 
+  top_n(n = 40, wt = avg_log2FC)
+
+DoHeatmap(AT1_1, features = top40$gene) + 
+  labs(title = "AT1_1") +
+  theme(legend.position = 'bottom')
+
+ggsave(here('explore/Figure_workflow/AT_workflow/AT1_1_heatmap.pdf')) 
+
+# AT1_2 / cluster 10 
+top40 <- fig3_markers %>% 
+  group_by(cluster == "10") %>% 
+  top_n(n = 40, wt = avg_log2FC)
+
+DoHeatmap(AT1_2, features = top40$gene) + 
+  labs(title = "AT1_2") +
+  theme(legend.position = 'bottom')
+
+ggsave(here('explore/Figure_workflow/AT_workflow/AT1_2_heatmap.pdf')) 
+
+# AT1_3 / cluster 21 
+top40 <- fig3_markers %>% 
+  group_by(cluster == "21") %>% 
+  top_n(n = 40, wt = avg_log2FC)
+
+DoHeatmap(AT1_3, features = top40$gene) + 
+  labs(title = "AT1_3") +
+  theme(legend.position = 'bottom')
+
+ggsave(here('explore/Figure_workflow/AT_workflow/AT1_3_heatmap.pdf')) 
+
+# ----------------------------------------------- AT2 ----------------------------------------------------------
+# AT2_1 / cluster 29 
+top40 <- fig3_markers %>% 
+  group_by(cluster == "29") %>% 
+  top_n(n = 40, wt = avg_log2FC)
+
+DoHeatmap(AT2_1, features = top40$gene) + 
+  labs(title = "AT2_1") +
+  theme(legend.position = 'bottom')
+
+ggsave(here('explore/Figure_workflow/AT_workflow/AT2_1_heatmap.pdf')) 
+
+# AT2_2 / cluster 33 
+top40 <- fig3_markers %>% 
+  group_by(cluster == "33") %>% 
+  top_n(n = 40, wt = avg_log2FC)
+
+DoHeatmap(AT2_2, features = top40$gene) + 
+  labs(title = "AT2_2") +
+  theme(legend.position = 'bottom')
+
+ggsave(here('explore/Figure_workflow/AT_workflow/AT2_2_heatmap.pdf')) 
+
+# AT2_3 / cluster 3 
+top40 <- fig3_markers %>% 
+  group_by(cluster == "3") %>% 
+  top_n(n = 40, wt = avg_log2FC)
+
+DoHeatmap(AT2_3, features = top40$gene) + 
+  labs(title = "AT2_3") +
+  theme(legend.position = 'bottom')
+
+ggsave(here('explore/Figure_workflow/AT_workflow/AT2_3_heatmap.pdf')) 
+
+# AT2_4 / cluster 17 
+top40 <- fig3_markers %>% 
+  group_by(cluster == "17") %>% 
+  top_n(n = 40, wt = avg_log2FC)
+
+DoHeatmap(AT2_4, features = top40$gene) + 
+  labs(title = "AT2_4") +
+  theme(legend.position = 'bottom')
+
+ggsave(here('explore/Figure_workflow/AT_workflow/AT2_4_heatmap.pdf')) 
+
+# AT2_5 / cluster 14 
+top40 <- fig3_markers %>% 
+  group_by(cluster == "14") %>% 
+  top_n(n = 40, wt = avg_log2FC)
+
+DoHeatmap(AT2_5, features = top40$gene) + 
+  labs(title = "AT2_5") +
+  theme(legend.position = 'bottom')
+
+ggsave(here('explore/Figure_workflow/AT_workflow/AT2_5_heatmap.pdf')) 
+
+# AT2_6 / cluster 28 
+top40 <- fig3_markers %>% 
+  group_by(cluster == "28") %>% 
+  top_n(n = 40, wt = avg_log2FC)
+
+DoHeatmap(AT2_6, features = top40$gene) + 
+  labs(title = "AT2_6") +
+  theme(legend.position = 'bottom')
+
+ggsave(here('explore/Figure_workflow/AT_workflow/AT2_6_heatmap.pdf')) 
+
+# AT2_7 / cluster 2 
+top40 <- fig3_markers %>% 
+  group_by(cluster == "2") %>% 
+  top_n(n = 40, wt = avg_log2FC)
+
+DoHeatmap(AT2_7, features = top40$gene) + 
+  labs(title = "AT2_7") +
+  theme(legend.position = 'bottom')
+
+ggsave(here('explore/Figure_workflow/AT_workflow/AT2_7_heatmap.pdf')) 
+
+```
+
+
+
+
+
+
+```{r}
+top20 <- fig3_markers %>% 
+  group_by(cluster == "2") %>% 
+  top_n(n = 20, wt = avg_log2FC)
+
+
+DoHeatmap(fig3, features = top20$gene) + 
+  #theme_classic() + 
+  theme(legend.position = 'bottom')  
+#ggsave(here('explore/Figure_workflow/AT_workflow/AT_heatmap.pdf'))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

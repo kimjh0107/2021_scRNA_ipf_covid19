@@ -1,0 +1,277 @@
+---
+title: "retry_test_mapping"
+output: html_document
+output: github_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+```
+
+
+
+```{r}
+# Load the IPF dataset by Read10X
+
+setwd("~/scRNA_IPF_data")
+ild_data <- Read10X('data/GSE135893_IPF_1/GSE135893_seurat/', gene.column=1) 
+
+# gene.colum = 1 을 하기 전에는 Error in `[.data.frame`(feature.names, , gene.column) :    undefined columns selected error 발생 
+# no second column in your genes.tsv file 일수도 있기에 -> gene.colum = 1 을 통해서 Read10X 생성 
+# 압축되어있는 파일 상태로 다운 받아본 다음에 다시 진행 
+
+# make a SeuratObject 
+ild <- CreateSeuratObject(ild_data,
+                          project = "scRNA_lung", # 이렇게 변경은 하고 아직 run은 돌리지 않음 
+                          min.features = 200)
+
+# Warning: Feature names cannot have underscores ('_'), replacing with dashes ('-')
+```
+
+
+```{r}
+metadata <- read_csv("metadata.csv")
+ild <- AddMetaData(ild, rownames(ild@meta.data), col.name = "cellbarcodes")
+ild <- subset(x = ild, subset = cellbarcodes %in% metadata$cellbarcodes)
+cells <- ild@meta.data
+cells <- cells %>% left_join(metadata %>% select(Diagnosis, Sample_Name, Sample_Source, Status, celltype, population, cellbarcodes), by = "cellbarcodes")
+
+ild <- AddMetaData(ild, cells$Diagnosis, col.name = "Diagnosis")
+ild <- AddMetaData(ild, cells$Sample_Name, col.name = "Sample_Name")
+ild <- AddMetaData(ild, cells$Sample_Source, col.name = "Sample_Source")
+ild <- AddMetaData(ild, cells$Status, col.name = "Status")
+ild <- AddMetaData(ild, cells$celltype, col.name = "celltype")
+ild <- AddMetaData(ild, cells$population, col.name = "population")
+
+```
+
+```{r}
+head(ild)
+```
+
+
+
+```{r}
+ild <- PercentageFeatureSet(ild, pattern = "^MT-", col.name = "percent.mt")
+ild <- subset(ild, subset = nFeature_RNA > 1000 & percent.mt < 25)
+
+ild <- SCTransform(ild, method = "glmGamPoi", vars.to.regress = "percent.mt", verbose = FALSE)
+
+ild <- RunPCA(ild)
+ild <- RunUMAP(ild, dims = 1:30, verbose = FALSE, return.model=TRUE)
+
+ild <- FindNeighbors(ild, dims = 1:30, verbose = FALSE)
+ild <- FindClusters(ild, verbose = FALSE)
+```
+
+
+```{r}
+rm(cells, ild_data)
+```
+
+
+covid
+```{r}
+setwd("~/scRNA_IPF_data")
+covid <- Read10X('data/GSE149689_covid_kaist/GSE149689/')
+# IPF data와 동일하게 min,feautures 지정해줘서 진행 
+```
+
+```{r}
+covid <- CreateSeuratObject(covid,
+                            project = "scRNA_covid",
+                            min.features = 200)
+
+# sample filtering을 통해서 covid 환자에 대한 데이터만 얻기 위한 과정 
+cell_barcodes <- rownames(covid@meta.data)
+
+covid$sample <- covid@meta.data %>% 
+  mutate(cell_barcodes = rownames(.)) %>% 
+  mutate(sample = str_sub(cell_barcodes, 18)) %>% select(sample) 
+
+# 필요한 covid data ( 나머지 전부 삭제 ) 
+covid <- covid %>% 
+  subset(sample != "1")
+
+covid <- covid %>% 
+  subset(sample != "9")
+
+covid <- covid %>% 
+  subset(sample != "10")
+
+covid <- covid %>% 
+  subset(sample != "15")
+
+covid <- covid %>% 
+  subset(sample != "16")
+
+covid <- covid %>% 
+  subset(sample != "17")
+
+unique(covid$sample)
+
+# qc -> percent.mt ( 근데 결과가 0, 아마 사전에 처리된걸수도?) 
+covid <- PercentageFeatureSet(object = covid, pattern = "^MT-", col.name = "percent.mt")
+covid <- subset(covid, subset = nFeature_RNA > 1000 & percent.mt < 25)
+covid <- SCTransform(covid, method = "glmGamPoi", vars.to.regress = "percent.mt", verbose = FALSE)
+
+head(covid)
+```
+
+```{r}
+anchors <- FindTransferAnchors(
+  reference = ild,
+  query = covid,
+  normalization.method = "SCT",
+  reference.reduction = "pca",
+  dims = 1:50
+)
+```
+
+```{r}
+head(ild)
+```
+
+
+```{r}
+ild@reductions
+```
+
+< Error: The provided reduction.model does not have a model stored. Please try running umot-learn on the object first >
+
+error 해결 방법: 
+1. reference UMAP 과정 진행중 return.model = TRUE로 설정하고 진행 
+
+
+
+```{r}
+covid <- MapQuery(
+  anchorset = anchors,
+  query = covid,
+  reference = ild,
+  refdata = list(
+    celltype = "celltype",
+    predicted_SCT = "SCT"
+  ),
+  reference.reduction = "pca", 
+  reduction.model = "umap"
+)
+```
+
+
+```{r}
+head(covid)
+```
+
+
+# Explore the mapping results 
+```{r}
+p1 <- DimPlot(covid, reduction = "ref.umap", group.by = "predicted.celltype", label = TRUE, label.size = 3, repel = TRUE) 
+p1
+# ggsave(here('figure/mapping_DimPlot.pdf'))
+
+```
+
+Feature plot 그리기 위해서 predicted_cell_type 확인해보기 
+```{r}
+head(covid)
+unique(covid$predicted.celltype)
+unique(covid@meta.data[c('predicted.celltype')])
+
+```
+[ T Cells, NK Cells, Proliferating T Cells, B Cells, Monocytes, pDCs, Macrophages, cDCs, Ciliated, Plasma Cells, Endothelial Cells, Proliferating Macrophages ]
+
+
+
+```{r}
+plot1 <- FeaturePlot(covid, features = c("T Cells"),  reduction = "ref.umap", cols = c("lightgrey", "darkred"), ncol = 1) & theme(plot.title = element_text(size = 10))
+
+plot2<- FeaturePlot(covid, features = c("NK Cells"),  reduction = "ref.umap", cols = c("lightgrey", "darkred"), ncol = 1) & theme(plot.title = element_text(size = 10))
+
+plot1 + plot2
+
+ggsave(here('figure/mapping_FeauturePlot.pdf'))
+
+```
+
+```{r}
+#merge reference and query
+ild$id <- 'reference'
+covid$id <- 'query'
+refquery <- merge(ild, covid)
+refquery[["pca"]] <- merge(reference[["pca"]], covid[["ref.pca"]])
+refquery <- RunUMAP(refquery, reduction = 'pca', dims = 1:50)
+DimPlot(refquery, group.by = 'id', shuffle = TRUE)
+```
+
+refquery를 형성함으로서 reference, query를 이제 합친 폼으로 만들기는 가능, 하지만 겹치지 않는 것들에 대해서 null값들 많이 존재하는 것 확인 가능 
+
+
+나중에 figure1로 추가하면 좋을 부분들 ( 그냥 논문 읽다 우선은 여기다 정리 -> 나주에 데이터 만져보면서 feature 뽑아보기 )
+
+# Figure1
+1. celltype 별로 , healty vs IPF vs covid , 그냥 모든 환자별 전부다 
+1. refquery$population 별로 그래프 많이 그림 
+   -> 각 population별 umap을 그려도 되고 아니면 도표 형태로 표현하는 것도 가능 둘중 아무거나 
+
+
+
+```{r}
+head(refquery)
+unique(refquery$population)
+```
+
+```{r}
+head(covid)
+```
+
+
+```{r}
+rm(p1, p2, p3, plot1, plot2, plot3, plo11)
+```
+
+
+```{r}
+
+DimPlot(refquery, reduction = "umap", group.by = "celltype", label = TRUE, label.size = 3, repel = TRUE) + NoLegend()
+DimPlot(ild, reduction = "umap", group.by = "celltype", label = TRUE, label.size = 3, repel = TRUE,raster=FALSE)+ NoLegend()
+DimPlot(covid, reduction = "ref.umap", group.by = "predicted.celltype", label = TRUE, label.size = 3, repel = TRUE) + NoLegend()
+
+```
+
+
+#merge reference and query
+reference$id <- 'reference'
+pbmc3k$id <- 'query'
+refquery <- merge(reference, pbmc3k)
+refquery[["spca"]] <- merge(reference[["spca"]], pbmc3k[["ref.spca"]])
+refquery <- RunUMAP(refquery, reduction = 'spca', dims = 1:50)
+DimPlot(refquery, group.by = 'id', shuffle = TRUE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

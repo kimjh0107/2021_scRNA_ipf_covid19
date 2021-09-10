@@ -1,0 +1,79 @@
+---
+title: "04_Dotplot_genes"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+```{r}
+pathway <- readRDS(here('explore/RDS/pathway/pathway_newc_columns.RDS'))
+```
+
+```{r}
+genes_list <- c(
+'BMP2',
+'BMP5',
+'COMP',
+'CAMK2B',
+'CCND1',
+'CCND2',
+'HES1',
+'PSENEN'
+)
+
+pathway_name <- c(
+'TGF-B',
+'TGF-B',
+'TGF-B',
+'WNT',
+'WNT',
+'WNT',
+'Notch',
+'Notch'
+)
+```
+
+```{r}
+genes <- data.frame(genes_list, pathway_name)
+genes
+```
+
+```{r}
+Idents(object = pathway) <- "cell_type_new_submain"
+```
+
+
+```{r}
+DotPlot(pathway, features = genes$genes_list, dot.scale = 5) +
+  facet_grid(pathway_name,
+             scales = "free",
+             space = "free") + 
+        
+ # theme(axis.text.x=element_text(angle=90, hjust=1, size=8)) 
+```
+ggplot(sum1,
+       aes(x = cell_type_submain, 
+           y = count_cell,
+           color = cell_type_main.x,
+           fill = cell_type_main.x)) + 
+  geom_bar(stat = "identity", width = 0.7) + 
+  labs(x = "Control Cell-Type", y = "Cell-Count") + 
+  facet_grid(~cell_type_main.x,
+             scales = "free",
+             space = "free") + 
+  theme_classic() + 
+  labs(title = "Control Cell proportion") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 10, face = 'bold'), legend.position = 'bottom') + 
+  NoLegend()
+
+

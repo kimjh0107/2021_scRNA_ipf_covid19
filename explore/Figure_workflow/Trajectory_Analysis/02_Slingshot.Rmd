@@ -1,0 +1,123 @@
+---
+title: "03_Slingshot"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(slingshot)
+library(BUSpaRse)
+library(tidyverse)
+library(tidymodels)
+library(Seurat)
+library(scales)
+library(viridis)
+library(Matrix)
+library(SingleCellExperiment)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+
+epi <- subset(refquery, cells = rownames(refquery@meta.data[refquery@meta.data$cell_type_main == "Epithelial cells", ]))
+
+# Subset out only ILD samples from Epi population
+epi_ild <- subset(epi, cells = rownames(epi@meta.data[epi@meta.data$Status == "ILD",]))
+```
+
+```{r}
+# five celltypes
+two <- subset(epi_ild, cells = rownames(epi_ild@meta.data[epi_ild@meta.data$cell_type_submain %in% c("AT1", "AT2"),]))
+```
+
+
+# 1) 우선은 runPCA, runUMAP을 진행하지 않고 해보기 
+# 바로 as.SingleCellExperiment로 진행 
+```{r}
+sce <- as.SingleCellExperiment(two, assay = "RNA")
+```
+
+```{r}
+head(sce@colData@listData$cell_type_submain)
+```
+
+```{r}
+sce_slingshot <- slingshot(sce, reducedDim = "UMAP", clusterLabels = colData(sce)@listData$cell_type_submain, start.clus = "AT1", approx_points = 150)
+```
+
+```{r}
+plot(reducedDims(sce_slingshot)$UMAP, 
+     pch = 16, asp = 1, xlab = "UMAP_1", ylab = "UMAP_2", cex=0.6) 
+```
+
+```{r}
+head(two@meta.data$cel)
+```
+
+
+```{r}
+	# Plot the trajectory
+epi_color <- as.character(two@meta.data$cell_type_submain)
+epi_color <- setNames(epi_color, rownames(two@meta.data))
+
+onion <- epi_color
+
+onion[onion == "AT2"] <- "#EE7342"
+onion[onion == "AT1"] <- "#548BC5"
+epi_color <- onion
+```
+
+
+
+
+```{r}
+plot(reducedDims(sce_slingshot)$UMAP, pch = 16, cex=0.6,  xlab = "UMAP_1", ylab = "UMAP_2") 
+lines(slingCurves(sce_slingshot)$curve1, lwd=3)
+legend(par(xpd = T), x= "topleft", pch = c(20), 
+       legend = c("AT2","AT1"))
+
+
+plot(reducedDims(sce_slingshot)$UMAP, col = epi_color, pch = 16, cex=0.6) 
+legend(par(xpd = T), x= "topleft", pch = c(20), 
+       legend = c("AT2", "AT1"), 
+       col = c("#EE7342","#548BC5"), bty = 'n')
+lines(sce_slingshot, lwd = 1, col = 'black')
+
+```
+
+```{r}
+#print(slingCurves(sce_slingshot))
+print(SlingshotDataSet(sce_slingshot))
+
+```
+
+```{r}
+summary(sce_slingshot@colData@listData$slingPseudotime_1)
+```
+
+
+```{r}
+sce_slingshot@colData@listDat
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

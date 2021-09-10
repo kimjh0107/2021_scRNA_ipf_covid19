@@ -1,0 +1,202 @@
+---
+title: "01_Monocle_try"
+output: html_document
+---
+
+```{r}
+library(slingshot)
+library(BUSpaRse)
+library(tidyverse)
+library(tidymodels)
+library(Seurat)
+library(scales)
+library(viridis)
+library(Matrix)
+library(SingleCellExperiment)
+library(here)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+```
+
+```{r}
+head(refquery)
+```
+
+
+```{r}
+fig3 <- subset(x = refquery, subset = cell_type_submain == "AT2" | cell_type_submain == "AT1")
+unique(fig3$cell_type_submain)
+```
+
+```{r}
+head(fig3)
+```
+
+```{r}
+unique(fig3$seurat_clusters)
+```
+
+
+```{r}
+fig3 <- ScaleData(object = fig3)
+fig3 <- RunPCA(object = fig3)
+fig3 <- FindNeighbors(fig3, dims = 1:30)
+fig3 <- FindClusters(fig3)
+fig3 <- RunUMAP(object = fig3, dims = 1:30)
+```
+
+```{r}
+unique(fig3$seurat_clusters)
+```
+
+```{r}
+DimPlot(fig3, group.by = "seurat_clusters", label = TRUE)
+DimPlot(fig3, group.by = "cell_type_submain", label = TRUE)
+```
+
+# Convert to SingleCellExperiment
+```{r}
+sub_sce <- as.SingleCellExperiment(fig3, assay = "RNA")
+
+onion <- sub_sce@int_colData$reducedDims@listData$PCA[,1:20]
+sub_sce@int_colData$reducedDims@listData$PCA <- onion
+
+# Remove mitochondria and ribosomal genes
+temp <- grep( "^MT-", rownames(sub_sce), ignore.case = F, value = T) 
+sub_sce <- sub_sce[!rownames(sub_sce) %in% temp,]
+temp2 <- grep( "^RP", rownames(sub_sce), ignore.case = F, value = T) 
+sub_sce <- sub_sce[!rownames(sub_sce) %in% temp2,] 
+                
+# Run Slingshot
+sub_slingshot <- slingshot(sub_sce, clusterLabels = "seurat_clusters", reducedDim = 'UMAP',
+                           start.clus="6")
+summary(sub_slingshot$slingPseudotime_1)
+print(SlingshotDataSet(sub_slingshot))
+```
+
+```{r}
+
+epi_color <- as.character(fig3@meta.data$cell_type_submain)
+epi_color <- setNames(epi_color, rownames(fig3@meta.data))
+
+onion <- epi_color
+onion[onion == "AT2"] <- "#EE7342"
+onion[onion == "AT1"] <- "#548BC5"
+epi_color <- onion
+
+plot(reducedDims(sub_slingshot)$UMAP, col = epi_color,
+     pch = 16, asp = 1, xlab = "UMAP_1", ylab = "UMAP_2", cex=0.6)   
+legend(par(xpd = T), x= "topleft", pch = c(20), 
+       legend = c("AT2","AT1"), 
+       col = c("#EE7342","#548BC5"), bty = 'n')
+lines(SlingshotDataSet(sub_slingshot), lwd = 2, col = 'black')
+#lines(slingCurves(sub_slingshot)$curves1, lwd=3, col = 'black')
+          
+# Save lineage
+umap_lineage <- sub_slingshot$slingPseudotime_1
+umap_lineage <- colnames(sub_slingshot)
+
+ggsave(here("figure/Trajectory_work/line_UMAP_by_startclus_6.pdf"))
+```
+# Start cluster -> 6 , 4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#PCA
+```{r}
+sub_sce <- as.SingleCellExperiment(fig3)
+
+# Dimentionality reduction
+onion <- sub_sce@int_colData$reducedDims@listData$PCA[,1:20]
+sub_sce@int_colData$reducedDims@listData$PCA <- onion
+
+# Remove mitochondria and ribosomal genes
+temp <- grep( "^MT-", rownames(sub_sce), ignore.case = F, value = T) #13 MT genes
+sub_sce <- sub_sce[!rownames(sub_sce) %in% temp,]
+temp2 <- grep( "^RP", rownames(sub_sce), ignore.case = F, value = T) #4723 RP genes
+sub_sce <- sub_sce[!rownames(sub_sce) %in% temp2,] # total 21641 genes, 6406 cells
+
+# Run Slingshot
+sub_slingshot <- slingshot(sub_sce, clusterLabels = "cell_type_submain", reducedDim = 'PCA',
+                           start.clus="AT2", end.clus="AT1")
+summary(sub_slingshot$slingPseudotime_1)
+print(SlingshotDataSet(sub_slingshot))
+```
+
+```{r}
+# Plot the trajectory
+plot(reducedDims(sub_slingshot)$PCA, col = epi_color,
+     pch = 16, asp = 1, xlab = "PC_1", ylab = "PC_2", cex=0.6)   
+legend(par(xpd = T), x= "topleft", pch = c(20), 
+       legend = c("AT2","AT1"), 
+       col = c("#EE7342","#548BC5"), bty = 'n')
+lines(slingCurves(sub_slingshot)$curve1, lwd=3)
+lines(SlingshotDataSet(sub_slingshot)$Lineage1, lwd = 3, col = 'black')
+
+# save lineage
+pca_lineage <- sub_slingshot$slingPseudotime_1
+pca_lineage <- colnames(sub_slingshot)
+```
+
+```{r}
+pc_1 <- fig3@reductions$pca[[,1]]
+
+pca_lineage <- as.data.frame(pca_lineage)
+umap_lineage <- as.data.frame(umap_lineage)
+pc_1 <- as.data.frame(pc_1[,1])
+```
+
+```{r}
+cell_color <- as.data.frame(fig3@meta.data)
+cell_color <-  cell_color[ -c(1:12, 14:20) ]
+cell_color[cell_color == "AT2"] <- "#EE7342"
+cell_color[cell_color == "AT1"] <- "#548BC5"
+```
+
+```{r}
+onion <- cbind(pc_1, pca_lineage, umap_lineage, cell_color)
+colnames(onion) <- c("pc_1", "pca_lineage", "umap_lineage", "cell_color")
+```
+
+```{r}
+head(onion)
+```
+
+```{r}
+unique(onion$cell_color)
+```
+
+
+```{r}
+cor <- cor.test(onion$pca_lineage, onion$pc_1, method = "spearman")
+cor <- round(as.numeric(cor$estimate), 3)
+plot(as.numeric(onion$pca_lineage),
+     as.numeric(onion$pc_1),
+     col = onion$cell_color,
+     pch = 16,
+     xlab = "PCA_lineage",
+     ylab = "PC_1",
+     main = "AT2_to_AT1",
+     sub = paste("spearman", cor, sep = "_"))
+```
+
+
+
+
+         

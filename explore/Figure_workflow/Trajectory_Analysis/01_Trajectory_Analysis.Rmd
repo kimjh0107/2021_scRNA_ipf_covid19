@@ -1,0 +1,209 @@
+---
+title: "03_Trajectory_Analysis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(slingshot)
+library(BUSpaRse)
+library(tidyverse)
+library(tidymodels)
+library(Seurat)
+library(scales)
+library(viridis)
+library(Matrix)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+```
+
+```{r}
+withRNA_epi <- subset(refquery, cells = rownames(refquery@meta.data[refquery@meta.data$cell_type_main == "Epithelial cells", ]))
+epi_col <- c("AT1" = "#548BC5", "AT2"="#EE7342", "Club Cell" = "#B19302", "Gobelt Cel" = "#9C9966", "Basal Cell" = "#03AF21", "Ciliated Cell" = "#003366")
+```
+
+# subset only AT2 samples from Epi population
+```{r}
+fig <- subset(withRNA_epi, cells = rownames(withRNA_epi@meta.data[withRNA_epi@meta.data$cell_type_submain %in%
+                                                                    c("AT2", "AT1"),]))
+dim(fig@meta.data)
+```
+
+```{r}
+fig@meta.data
+```
+
+```{r}
+fig <- SCTransform(fig)
+fig <- RunPCA(fig)
+```
+
+```{r}
+ElbowPlot(fig)
+```
+
+```{r}
+DimPlot(fig, reduction = "pca", group.by = "cell_type_submain", pt.size = 0.5, label = TRUE, repel =TRUE) + 
+  scale_color_brewer(type = "qual", palette = "Paired")
+```
+
+```{r}
+fig <- RunUMAP(fig, dims = 1:50, seed.use = 4867)
+```
+
+```{r}
+DimPlot(fig, reduction = "umap",
+        group.by = "cell_type_submain", pt.size = 0.5, label = TRUE, repel = TRUE) + 
+    scale_color_brewer(type = "qual", palette = "Paired")
+
+```
+
+```{r}
+fig <- FindNeighbors(fig, verbose = FALSE)
+fig <- FindClusters(fig, resolution = 1)
+```
+
+```{r}
+DimPlot(fig, pt.size = 0.5, reduction = "umap", group.by = "SCT_snn_res.1", label = TRUE)
+DimPlot(fig, reduction = "umap",
+        group.by = "cell_type_submain", pt.size = 0.5, label = TRUE, repel = TRUE) + 
+    scale_color_brewer(type = "qual", palette = "Paired")
+```
+
+# Slingshot
+```{r}
+fig_s <- slingshot(Embeddings(fig, "umap"), clusterLabels = fig$SCT_snn_res.1, 
+                 start.clus = 12, stretch = 3)
+```
+
+```{r}
+print(SlingshotDataSet(fig_s))
+```
+```{r}
+fig_s@meta.data$cell_type_submain
+```
+
+
+```{r}
+epi_colors <- as.character(fig_s@meta.data)
+```
+
+
+
+
+```{r}
+plot(reducedDims(fig_s)$UMAP, col = cell_colors,
+     pch = 16, asp = 1, xlab = "UMAP_1", ylab = "UMAP_2", cex=0.6) 
+```
+
+
+```{r}
+plot(reducedDim(fig_s),  pch = 16, cex = 0.5)
+lines(fig_s, lwd = 2,  col = 'black')
+```
+
+```{r}
+head(fig_s@metadata)
+```
+
+
+
+	epi_color <- as.character(SCGB3A2@meta.data$celltype)
+epi_color <- setNames(epi_color, rownames(SCGB3A2@meta.data))
+
+onion <- epi_color
+onion[onion == "KRT5-/KRT17+"] <- "#03AF21"
+onion[onion == "Transitional AT2"] <- "#F1A5C4"
+onion[onion == "SCGB3A2+"] <- "#F659DD"
+onion[onion == "AT1"] <- "#548BC5"
+epi_color <- onion
+
+
+
+
+
+
+
+
+```{r}
+fig <- SCTransform(fig)
+fig <- RunPCA(fig)
+fig <- RunUMAP(fig, dims = 1:5)
+DimPlot(fig, cols = epi_col)
+```
+
+# Convert to SingleCellExperiment
+```{r}
+fig <- DietSeurat(fig, graphs = "pca")
+sub_sce <- as.SingleCellExperiment(fig)
+```
+
+```{r}
+head(sub_sce)
+```
+
+
+# Dimentionality reduction
+```{r}
+dim_re <- sub_sce@int_colData$reducedDims@listData$PCA[, 1:20]
+sub_sce@int_colData$reducedDims@listData$PCA <- dim_re
+```
+
+# Remove mitochondria and ribosomal genes
+```{r}
+temp <- grep("^MT-", rownames(sub_sce), ignore.case = F, value = T)
+sub_sce <- sub_sce[!rownames(sub_sce) %in% temp,]
+
+temp2 <- grep( "^RP", rownames(sub_sce), ignore.case = F, value = T)
+sub_sce <- sub_sce[!rownames(sub_sce) %in% temp2,]
+```
+
+```{r}
+unique(sub_sce$cell_type_submain)
+```
+
+```{r}
+unique(sub_sce$cell_type_submain)
+```
+
+
+
+# Run Slingshot
+```{r}
+sub_slingshot <- slingshot(Embeddings(sub_sce, "umap"), clusterLabels = 'cell_type_submain', start.clus = "AT2", end.clus = "AT1")
+
+
+
+#sub_slingshot <- slingshot(sub_sce, clusterLabels = "cell_type_submain"
+#                           start.clus="AT2", end.clus="AT1")
+#summary(sub_slingshot$slingPseudotime_1)
+#print(SlingshotDataSet(sub_slingshot))
+```
+
+```{r}
+#plot(reducedDim(sub_slingshot), col = cell_c)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

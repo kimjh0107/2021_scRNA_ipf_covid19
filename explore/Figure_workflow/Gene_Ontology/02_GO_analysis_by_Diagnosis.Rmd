@@ -1,0 +1,87 @@
+---
+title: "02_GO_analysis_by_Diagnosis"
+output: html_document
+---
+
+```{r}
+library(slingshot)
+library(BUSpaRse)
+library(tidyverse)
+library(tidymodels)
+library(Seurrefquery)
+library(scales)
+library(viridis)
+library(Mrefqueryrix)
+library(SingleCellExperiment)
+library(here)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+```
+
+```{r}
+head(refquery)
+unique(refquery$Diagnosis)
+```
+
+```{r}
+Control <- subset(x = refquery, subset = Diagnosis == "Control")
+IPF <- subset(x = refquery, subset = Diagnosis == "IPF")
+COVID <- subset(x = refquery, subset = Diagnosis == "COVID")
+```
+
+```{r}
+Control <- subset(x = Control, subset = cell_type_submain == "AT1" | cell_type_submain == "AT2")
+IPF <- subset(x = IPF, subset = cell_type_submain == "AT1" | cell_type_submain == "AT2")
+COVID <- subset(x = COVID, subset = cell_type_submain == "AT1" | cell_type_submain == "AT2")
+```
+
+```{r}
+Control <- ScaleData(object = Control)
+Control <- RunPCA(object = Control)
+Control <- FindNeighbors(Control, dims = 1:30)
+Control <- FindClusters(Control, resolution = 0.8)
+Control <- RunUMAP(object = Control, dims = 1:30)
+
+IPF <- ScaleData(object = IPF)
+IPF <- RunPCA(object = IPF)
+IPF <- FindNeighbors(IPF, dims = 1:30)
+IPF <- FindClusters(IPF, resolution = 0.8)
+IPF <- RunUMAP(object = IPF, dims = 1:30)
+
+COVID <- ScaleData(object = COVID)
+COVID <- RunPCA(object = COVID)
+COVID <- FindNeighbors(COVID, dims = 1:30)
+COVID <- FindClusters(COVID, resolution = 0.8)
+COVID <- RunUMAP(object = COVID, dims = 1:30)
+```
+
+```{r}
+Control_markers <- FindAllMarkers(Control, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+write.csv(Control_markers, "Control_markers.csv")
+
+IPF_markers <- FindAllMarkers(IPF, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+write.csv(IPF_markers, "IPF_markers.csv")
+
+COVID_markers <- FindAllMarkers(COVID, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+write.csv(COVID_markers, "COVID_markers.csv")
+```
+
+```{r}
+head(COVID)
+unique(COVID$seurat_clusters)
+```
+
+# findconservedmarkers와 어떠한 차이점이 존재하는지 확인하기 위해서 한번 실시 
+```{r}
+DefaultAssay(COVID) <- "RNA"
+COVID_markers0 <- FindConservedMarkers(COVID, ident.1 = 0,  grouping.var = "Diagnosis", verbose = T)
+head(COVID_markers0)
+write.csv(COVID_markers0, 'COVID_markers0.csv', row.names = TRUE)
+```
+
+
+
+
+

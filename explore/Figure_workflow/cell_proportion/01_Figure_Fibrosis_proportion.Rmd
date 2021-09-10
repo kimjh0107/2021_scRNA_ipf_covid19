@@ -1,0 +1,268 @@
+---
+title: "01_Figure_Fibrosis_proportion"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+```
+
+```{r}
+unique(refquery$cell_type_submain)
+```
+
+```{r}
+refquery@meta.data$batch <- substr(refquery@meta.data$cellbarcodes, 1, 6)
+refquery$Disease <- recode(refquery$Status, `Control` = "Ctrl", `ILD` = "IPF", COVID = "COV")
+cells <- refquery@meta.data
+```
+
+```{r}
+unique(cells$batch)
+#unique(cells$orig.ident)
+
+head(cells)
+```
+
+
+```{r}
+# 총 n count plasma_cell 
+num_pathogenic_fibrosis_cell <- cells %>% 
+  filter(cell_type_submain == 'Pathological Fibroblasts') %>% 
+  count() %>%  pull()
+
+# group by batch 
+pathogenic_fibrosis_count <- cells %>% 
+  filter(cell_type_submain == 'Pathological Fibroblasts') %>% 
+  group_by(Disease, batch) %>% 
+  count() %>% 
+  mutate(freq = n / num_pathogenic_fibrosis_cell)  # mutate = add new variable function 
+
+pathogenic_fibrosis_count %>% 
+  ggplot(aes(Disease, freq, color = Disease)) + geom_jitter(width = 0.05) + ylim(0, 0.4) + 
+  theme_bw() + 
+  scale_x_discrete(limits = c('Ctrl', 'IPF', 'COV')) + 
+  scale_color_manual(values = c('blue','orange','red')) + 
+  labs(title = 'Pathological Fibroblasts', y = 'Frequency') + 
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(size = 1),
+        axis.ticks = element_line(size = 1),
+        panel.border = element_blank(),
+        legend.position = 'none',
+        plot.title = element_text(hjust = 0.5, size = 20),
+        axis.text.x = element_text(angle = 45, vjust =1, hjust = 1, size = 15, face = 'bold'),
+        axis.text.y = element_text(size = 15, face = 'bold')) + 
+  coord_fixed(ratio = 15)
+
+ggsave(here('figure/Figure_Workflow/Pathological_Fibrosis_proportion.pdf')) 
+```
+
+```{r}
+# 총 n count plasma_cell 
+num_pathogenic_fibrosis_cell <- cells %>% 
+  filter(cell_type_submain == 'Alveolar Fibroblasts') %>% 
+  count() %>%  pull()
+
+# group by batch 
+pathogenic_fibrosis_count <- cells %>% 
+  filter(cell_type_submain == 'Alveolar Fibroblasts') %>% 
+  group_by(Disease, batch) %>% 
+  count() %>% 
+  mutate(freq = n / num_pathogenic_fibrosis_cell)  # mutate = add new variable function 
+
+pathogenic_fibrosis_count %>% 
+  ggplot(aes(Disease, freq, color = Disease)) + geom_jitter(width = 0.05) + ylim(0, 0.4) + 
+  theme_bw() + 
+  scale_x_discrete(limits = c('Ctrl', 'IPF', 'COV')) + 
+  scale_color_manual(values = c('blue','orange','red')) + 
+  labs(title = 'Alveolar Fibroblasts', y = 'Frequency') + 
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(size = 1),
+        axis.ticks = element_line(size = 1),
+        panel.border = element_blank(),
+        legend.position = 'none',
+        plot.title = element_text(hjust = 0.5, size = 20),
+        axis.text.x = element_text(angle = 45, vjust =1, hjust = 1, size = 15, face = 'bold'),
+        axis.text.y = element_text(size = 15, face = 'bold')) + 
+  coord_fixed(ratio = 15)
+
+ggsave(here('figure/Figure_Workflow/Alveolar_Fibroblasts_proportion.pdf')) 
+```
+
+```{r}
+# 총 n count plasma_cell 
+num_pathogenic_fibrosis_cell <- cells %>% 
+  filter(cell_type_submain == 'AT2') %>% 
+  count() %>%  pull()
+
+# group by batch 
+pathogenic_fibrosis_count <- cells %>% 
+  filter(cell_type_submain == 'AT2') %>% 
+  group_by(Disease, batch) %>% 
+  count() %>% 
+  mutate(freq = n / num_pathogenic_fibrosis_cell)  # mutate = add new variable function 
+
+pathogenic_fibrosis_count %>% 
+  ggplot(aes(Disease, freq, color = Disease)) + geom_jitter(width = 0.05) + ylim(0, 0.4) + 
+  theme_bw() + 
+  scale_x_discrete(limits = c('Ctrl', 'IPF', 'COV')) + 
+  scale_color_manual(values = c('blue','orange','red')) + 
+  labs(title = 'AT2', y = 'Frequency') + 
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(size = 1),
+        axis.ticks = element_line(size = 1),
+        panel.border = element_blank(),
+        legend.position = 'none',
+        plot.title = element_text(hjust = 0.5, size = 20),
+        axis.text.x = element_text(angle = 45, vjust =1, hjust = 1, size = 15, face = 'bold'),
+        axis.text.y = element_text(size = 15, face = 'bold')) + 
+  coord_fixed(ratio = 15)
+
+ggsave(here('figure/Figure_Workflow/AT2_proportion.pdf')) 
+```
+
+```{r}
+# 총 n count plasma_cell 
+num_pathogenic_fibrosis_cell <- cells %>% 
+  filter(cell_type_submain == 'AT1') %>% 
+  count() %>%  pull()
+
+# group by batch 
+pathogenic_fibrosis_count <- cells %>% 
+  filter(cell_type_submain == 'AT1') %>% 
+  group_by(Disease, batch) %>% 
+  count() %>% 
+  mutate(freq = n / num_pathogenic_fibrosis_cell)  # mutate = add new variable function 
+
+pathogenic_fibrosis_count %>% 
+  ggplot(aes(Disease, freq, color = Disease)) + geom_jitter(width = 0.05) + ylim(0, 0.4) + 
+  theme_bw() + 
+  scale_x_discrete(limits = c('Ctrl', 'IPF', 'COV')) + 
+  scale_color_manual(values = c('blue','orange','red')) + 
+  labs(title = 'AT1', y = 'Frequency') + 
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(size = 1),
+        axis.ticks = element_line(size = 1),
+        panel.border = element_blank(),
+        legend.position = 'none',
+        plot.title = element_text(hjust = 0.5, size = 20),
+        axis.text.x = element_text(angle = 45, vjust =1, hjust = 1, size = 15, face = 'bold'),
+        axis.text.y = element_text(size = 15, face = 'bold')) + 
+  coord_fixed(ratio = 15)
+
+ggsave(here('figure/Figure_Workflow/AT1_proportion.pdf')) 
+```
+
+```{r}
+# 총 n count plasma_cell 
+num_pathogenic_fibrosis_cell <- cells %>% 
+  filter(cell_type_submain == 'Adventitial Fibroblasts') %>% 
+  count() %>%  pull()
+
+# group by batch 
+pathogenic_fibrosis_count <- cells %>% 
+  filter(cell_type_submain == 'Adventitial Fibroblasts') %>% 
+  group_by(Disease, batch) %>% 
+  count() %>% 
+  mutate(freq = n / num_pathogenic_fibrosis_cell)  # mutate = add new variable function 
+
+pathogenic_fibrosis_count %>% 
+  ggplot(aes(Disease, freq, color = Disease)) + geom_jitter(width = 0.05) + ylim(0, 0.4) + 
+  theme_bw() + 
+  scale_x_discrete(limits = c('Ctrl', 'IPF', 'COV')) + 
+  scale_color_manual(values = c('blue','orange','red')) + 
+  labs(title = 'Adventitial Fibroblasts', y = 'Frequency') + 
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(size = 1),
+        axis.ticks = element_line(size = 1),
+        panel.border = element_blank(),
+        legend.position = 'none',
+        plot.title = element_text(hjust = 0.5, size = 20),
+        axis.text.x = element_text(angle = 45, vjust =1, hjust = 1, size = 15, face = 'bold'),
+        axis.text.y = element_text(size = 15, face = 'bold')) + 
+  coord_fixed(ratio = 15)
+
+ggsave(here('figure/Figure_Workflow/Adventitial_Fibroblasts_proportion.pdf')) 
+```
+
+```{r}
+# 총 n count plasma_cell 
+num_pathogenic_fibrosis_cell <- cells %>% 
+  filter(cell_type_submain == 'Myofibroblasts') %>% 
+  count() %>%  pull()
+
+# group by batch 
+pathogenic_fibrosis_count <- cells %>% 
+  filter(cell_type_submain == 'Myofibroblasts') %>% 
+  group_by(Disease, batch) %>% 
+  count() %>% 
+  mutate(freq = n / num_pathogenic_fibrosis_cell)  # mutate = add new variable function 
+
+pathogenic_fibrosis_count %>% 
+  ggplot(aes(Disease, freq, color = Disease)) + geom_jitter(width = 0.05) + ylim(0, 0.4) + 
+  theme_bw() + 
+  scale_x_discrete(limits = c('Ctrl', 'IPF', 'COV')) + 
+  scale_color_manual(values = c('blue','orange','red')) + 
+  labs(title = 'Myofibroblasts', y = 'Frequency') + 
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(size = 1),
+        axis.ticks = element_line(size = 1),
+        panel.border = element_blank(),
+        legend.position = 'none',
+        plot.title = element_text(hjust = 0.5, size = 20),
+        axis.text.x = element_text(angle = 45, vjust =1, hjust = 1, size = 15, face = 'bold'),
+        axis.text.y = element_text(size = 15, face = 'bold')) + 
+  coord_fixed(ratio = 15)
+
+ggsave(here('figure/Figure_Workflow/Myofibroblasts_proportion.pdf')) 
+```
+
+```{r}
+# 총 n count plasma_cell 
+num_pathogenic_fibrosis_cell <- cells %>% 
+  filter(cell_type_submain == 'Lipo Fibroblasts') %>% 
+  count() %>%  pull()
+
+# group by batch 
+pathogenic_fibrosis_count <- cells %>% 
+  filter(cell_type_submain == 'Lipo Fibroblasts') %>% 
+  group_by(Disease, batch) %>% 
+  count() %>% 
+  mutate(freq = n / num_pathogenic_fibrosis_cell)  # mutate = add new variable function 
+
+pathogenic_fibrosis_count %>% 
+  ggplot(aes(Disease, freq, color = Disease)) + geom_jitter(width = 0.05) + ylim(0, 0.4) + 
+  theme_bw() + 
+  scale_x_discrete(limits = c('Ctrl', 'IPF', 'COV')) + 
+  scale_color_manual(values = c('blue','orange','red')) + 
+  labs(title = 'Lipo Fibroblasts', y = 'Frequency') + 
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(size = 1),
+        axis.ticks = element_line(size = 1),
+        panel.border = element_blank(),
+        legend.position = 'none',
+        plot.title = element_text(hjust = 0.5, size = 20),
+        axis.text.x = element_text(angle = 45, vjust =1, hjust = 1, size = 15, face = 'bold'),
+        axis.text.y = element_text(size = 15, face = 'bold')) + 
+  coord_fixed(ratio = 15)
+
+ggsave(here('figure/Figure_Workflow/Lipo_Fibroblasts_proportion.pdf')) 
+```

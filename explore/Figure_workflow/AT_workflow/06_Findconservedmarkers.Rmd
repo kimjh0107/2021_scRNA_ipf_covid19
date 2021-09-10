@@ -1,0 +1,91 @@
+---
+title: "06_Findconservedmarkers"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(Seurat)
+library(here)
+```
+
+```{r}
+AT <- readRDS((here('explore/Figure_workflow/AT_workflow/fig3.RDS')))
+
+
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(22), "AT1_1", "NA")
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(10), "AT1_2", AT@meta.data$new_submain)
+
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(29), "AT2_1", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(33, 3), "AT2_2", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(17), "AT2_3", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(14), "AT2_4", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(21, 28, 2), "AT2_5", AT@meta.data$new_submain)
+
+
+
+DimPlot(AT, group.by = "new_submain", label = TRUE)
+```
+
+
+```{r}
+levels(AT)
+Idents(AT) <- "new_submain"
+levels(AT)
+```
+
+```{r}
+# AT1_1
+DefaultAssay(AT) <- "RNA"
+AT1_1_markers <- FindConservedMarkers(AT, ident.1 = 'AT1_1', grouping.var = "Diagnosis", verbose = T)
+write.csv(AT1_1_markers, 'AT1_1_markers.csv', row.names = TRUE)
+
+# AT1_2
+DefaultAssay(AT) <- "RNA"
+AT1_2_markers <- FindConservedMarkers(AT, ident.1 = 'AT1_2', grouping.var = "Diagnosis", verbose = T)
+write.csv(AT1_2_markers, 'AT1_2_markers.csv', row.names = TRUE)
+
+# AT2_1
+DefaultAssay(AT) <- "RNA"
+AT2_1_markers <- FindConservedMarkers(AT, ident.1 = 'AT2_1', grouping.var = "Diagnosis", verbose = T)
+write.csv(AT2_1_markers, 'AT2_1_markers.csv', row.names = TRUE)
+
+# AT2_2
+DefaultAssay(AT) <- "RNA"
+AT2_2_markers <- FindConservedMarkers(AT, ident.1 = 'AT2_2', grouping.var = "Diagnosis", verbose = T)
+write.csv(AT2_2_markers, 'AT2_2_markers.csv', row.names = TRUE)
+
+# AT2_3
+DefaultAssay(AT) <- "RNA"
+AT2_3_markers <- FindConservedMarkers(AT, ident.1 = 'AT2_3', grouping.var = "Diagnosis", verbose = T)
+write.csv(AT2_3_markers, 'AT2_3_markers.csv', row.names = TRUE)
+
+# AT2_4
+DefaultAssay(AT) <- "RNA"
+AT2_4_markers <- FindConservedMarkers(AT, ident.1 = 'AT2_4', grouping.var = "Diagnosis", verbose = T)
+write.csv(AT2_4_markers, 'AT2_4_markers.csv', row.names = TRUE)
+```
+
+```{r}
+# AT2_5
+DefaultAssay(AT) <- "RNA"
+AT2_5_markers <- FindMarkers(AT, ident.1 = 'AT2_5', grouping.var = "Diagnosis", verbose = T)
+write.csv(AT2_5_markers, 'AT2_5_markers_nocell.csv', row.names = TRUE)
+```
+
+```{r}
+Every_markers <- FindAllMarkers(AT,only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+write.csv(Every_markers, 'Every_markers.csv', row.names = TRUE)
+```
+
+```{r}
+top20 <- Every_markers %>% 
+ # group_by(cluster == "2") %>% 
+  top_n(n = 20, wt = avg_log2FC)
+
+
+DoHeatmap(AT, features = top20$gene) + 
+  #theme_classic() + 
+  theme(legend.position = 'bottom')  
+#ggsave(here('explore/Figure_workflow/AT_workflow/AT_heatmap.pdf'))
+``

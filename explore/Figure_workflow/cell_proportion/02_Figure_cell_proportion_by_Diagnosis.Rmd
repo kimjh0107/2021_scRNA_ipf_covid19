@@ -1,0 +1,147 @@
+---
+title: "02_Figure_cell_proportion_IPF"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+```
+
+# subset by Diagnosis 
+```{r}
+refquery_IPF <- subset(x = refquery, subset = Diagnosis == "IPF")
+refquery_COVID <- subset(x = refquery, subset = Diagnosis == "COVID")
+refquery_Control <- subset(x = refquery, subset = Diagnosis == "Control")
+unique(refquery_IPF$Diagnosis)
+unique(refquery_COVID$Diagnosis)
+unique(refquery_Control$Diagnosis)
+```
+# 1. IPF
+```{r}
+cells_IPF <- refquery_IPF@meta.data
+cells_IPF %>% select(cell_type_submain)
+
+cell_count_df1 <- cells_IPF %>% 
+  select(cell_type_submain, cell_type_main) %>% 
+  group_by(cell_type_submain, cell_type_main) %>% 
+  summarise(count_cell = n(), .groups = "drop")
+
+sum_cell_df1 <- cell_count_df1 %>% 
+  group_by(cell_type_submain, cell_type_main) %>% 
+  summarise(sum_cell = sum(count_cell))
+
+sum1 <- cell_count_df1 %>% left_join(sum_cell_df1, by = 'cell_type_submain') 
+as.data.frame(sum1)
+head(sum1)
+```
+
+```{r}
+ggplot(sum1,
+       aes(x = cell_type_submain, 
+           y = count_cell,
+           color = cell_type_main.x,
+           fill = cell_type_main.x)) + 
+  geom_bar(stat = "identity", width = 0.7) + 
+  labs(x = "IPF Cell-Type", y = "Cell-Count") + 
+  facet_grid(~cell_type_main.x,
+             scales = "free",
+             space = "free") + 
+  theme_classic() + 
+  labs(title = "IPF Cell proportion") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 10, face = 'bold'), legend.position = 'bottom') + 
+  NoLegend()
+
+ggsave(here('figure/Figure_Workflow/01_IPF_cellcount.pdf')) 
+```
+
+
+# 2. COVID & Control 
+
+```{r}
+# COVID
+cells_IPF <- refquery_COVID@ meta.data
+cells_IPF %>% select(cell_type_submain)
+
+cell_count_df1 <- cells_IPF %>% 
+  select(cell_type_submain, cell_type_main) %>% 
+  group_by(cell_type_submain, cell_type_main) %>% 
+  summarise(count_cell = n(), .groups = "drop")
+
+sum_cell_df1 <- cell_count_df1 %>% 
+  group_by(cell_type_submain, cell_type_main) %>% 
+  summarise(sum_cell = sum(count_cell))
+
+sum1 <- cell_count_df1 %>% left_join(sum_cell_df1, by = 'cell_type_submain') 
+as.data.frame(sum1)
+head(sum1)
+
+ggplot(sum1,
+       aes(x = cell_type_submain, 
+           y = count_cell,
+           color = cell_type_main.x,
+           fill = cell_type_main.x)) + 
+  geom_bar(stat = "identity", width = 0.7) + 
+  labs(x = "COVID Cell-Type", y = "Cell-Count") + 
+  facet_grid(~cell_type_main.x,
+             scales = "free",
+             space = "free") + 
+  theme_classic() + 
+  labs(title = "COVID Cell proportion") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 10, face = 'bold'), legend.position = 'bottom') + 
+  NoLegend()
+
+ggsave(here('figure/Figure_Workflow/01_COVID_cellcount.pdf'))
+
+
+# Control 
+cells_IPF <- refquery_Control@ meta.data
+cells_IPF %>% select(cell_type_submain)
+
+cell_count_df1 <- cells_IPF %>% 
+  select(cell_type_submain, cell_type_main) %>% 
+  group_by(cell_type_submain, cell_type_main) %>% 
+  summarise(count_cell = n(), .groups = "drop")
+
+sum_cell_df1 <- cell_count_df1 %>% 
+  group_by(cell_type_submain, cell_type_main) %>% 
+  summarise(sum_cell = sum(count_cell))
+
+sum1 <- cell_count_df1 %>% left_join(sum_cell_df1, by = 'cell_type_submain') 
+as.data.frame(sum1)
+head(sum1)
+
+ggplot(sum1,
+       aes(x = cell_type_submain, 
+           y = count_cell,
+           color = cell_type_main.x,
+           fill = cell_type_main.x)) + 
+  geom_bar(stat = "identity", width = 0.7) + 
+  labs(x = "Control Cell-Type", y = "Cell-Count") + 
+  facet_grid(~cell_type_main.x,
+             scales = "free",
+             space = "free") + 
+  theme_classic() + 
+  labs(title = "Control Cell proportion") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 10, face = 'bold'), legend.position = 'bottom') + 
+  NoLegend()
+
+ggsave(here('figure/Figure_Workflow/01_Control_cellcount.pdf'))
+```
+
+
+
+

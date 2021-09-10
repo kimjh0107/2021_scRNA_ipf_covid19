@@ -1,0 +1,63 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r}
+total <- read.csv(here("explore/join_table.csv"))
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/05_Integrate_df_annotation.RDS'))
+```
+
+```{r}
+total$cellbarcodes <- total$X1
+```
+
+```{r}
+head(total)
+```
+
+
+```{r}
+# total = metadata 
+refquery <- AddMetaData(refquery, rownames(refquery@meta.data), col.name = "cellbarcodes")
+refquery <- subset(x = refquery, subset = cellbarcodes %in% total$cellbarcodes)
+
+```
+```{r}
+cells <- refquery@meta.data
+head(cells)
+```
+
+```{r}
+head(total)
+```
+
+```{r}
+cells <- cells %>% left_join(total %>% select(cell_type_submain.x, celltype, cellbarcodes), by = "cellbarcodes")
+```
+
+```{r}
+refquery <- AddMetaData(refquery, cells$celltype, col.name = "df_celltype")
+refquery <- AddMetaData(refquery, cells$cell_type_submain.x, col.name = "my_celltype")
+```
+
+
+```{r}
+head(refquery)
+```
+
+```{r}
+DimPlot(refquery, reduction = "umap", group.by = "df_celltype", label = TRUE, label.size = 3, repel = TRUE) + NoLegend()
+#ggsave(here('figure/df.pdf')) 
+
+DimPlot(refquery, reduction = "umap", group.by = "my_celltype", label = TRUE, label.size = 3, repel = TRUE) + NoLegend()
+#ggsave(here('figure/my_ref.pdf')) 
+
+```
+
+
+
+

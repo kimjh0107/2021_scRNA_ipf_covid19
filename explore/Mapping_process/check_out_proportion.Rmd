@@ -1,0 +1,68 @@
+---
+title: "8_Check_out_the_null_value"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+```
+
+```{r}
+refquery<- readRDS(here('explore/RDS/refquery_Merge.RDS'))
+ild<- readRDS(here('explore/RDS/IPF_Preprocessing.RDS'))
+covid <- readRDS(here('explore/RDS/COVID_Preprocessing.RDS'))
+```
+
+```{r}
+head(refquery)
+head(ild)
+head(covid)
+```
+
+```{r}
+table(is.na(refquery@meta.data))
+table(is.na(refquery@meta.data))
+
+
+table(is.na(refquery@meta.data$Diagnosis))
+table(is.na(ild@meta.data$Diagnosis))
+
+table(is.na(refquery@meta.data$Status))
+table(is.na(ild@meta.data$Status))
+
+table(is.na(refquery@meta.data$celltype))
+table(is.na(ild@meta.data$celltype))
+
+table(is.na(refquery@meta.data$population))
+table(is.na(ild@meta.data$population))
+
+```
+
+# 세포별 분포 확인 
+진행하기 위해서 우선적으로 refquery 중 status중에서 diagnosis가 이제 control인 사람들만 분리를 진행해주도록 한다. 
+
+```{r}
+unique(refquery$Diagnosis)
+```
+
+```{r}
+length(which(refquery@meta.data$Diagnosis == "Control"))
+length(which(refquery@meta.data$Diagnosis == "IPF"))
+table(is.na(refquery@meta.data$Diagnosis))
+# 이렇게 해서 토달 length는 저기 열어보면 알수 있는 것처럼 114153
+```
+
+
+
+
+
+
+

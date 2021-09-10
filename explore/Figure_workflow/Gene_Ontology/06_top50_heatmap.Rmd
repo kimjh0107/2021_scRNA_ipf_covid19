@@ -1,0 +1,102 @@
+---
+title: "06_gene_ontology_by_variable_features"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(Seurat)
+library(here)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+refquery <- subset(x = refquery, subset = cell_type_submain == "AT1" | cell_type_submain == "AT2")
+```
+
+```{r}
+refquery.markers <- FindAllMarkers(refquery,only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+refquery.markers %>%
+    group_by(cluster) %>%
+    slice_max(n = 50, order_by = avg_log2FC)
+```
+
+```{r}
+Idents(refquery) <- "cell_type_submain"
+levels(refquery)
+```
+
+
+```{r}
+refquery.markers %>%
+   # group_by(cluster) %>%
+    top_n(n = 50, wt = avg_log2FC) -> top10
+DoHeatmap(refquery, features = top10$gene) 
+ggsave(here('figure/Gene_Ontology/before_scaling_top50.pdf')) 
+
+```
+
+```{r}
+refquery.markers %>%
+   # group_by(cluster) %>%
+    top_n(n = 100, wt = avg_log2FC) -> top100
+DoHeatmap(refquery, features = top100$gene) 
+ggsave(here('figure/Gene_Ontology/before_scaling_top100.pdf')) 
+
+```
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+# scaling 작업을 한번다 실행을 한 다음의 결과를 보기 
+```{r}
+rm(refquery, refquery.markers, top10)
+```
+
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+refquery <- subset(x = refquery, subset = cell_type_submain == "AT1" | cell_type_submain == "AT2")
+
+refquery <- ScaleData(object = refquery)
+refquery <- RunPCA(object = refquery)
+refquery <- FindNeighbors(refquery, dims = 1:30)
+refquery <- FindClusters(refquery, resolution = 0.8)
+refquery <- RunUMAP(object = refquery, dims = 1:30)
+```
+
+```{r}
+head(refquery)
+unique(refquery$seurat_clusters)
+```
+
+
+```{r}
+refquery.markers <- FindAllMarkers(refquery,only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+refquery.markers %>%
+    group_by(cluster) %>%
+    slice_max(n = 50, order_by = avg_log2FC)
+```
+
+```{r}
+Idents(refquery) <- "cell_type_submain"
+levels(refquery)
+```
+
+```{r}
+refquery.markers %>%
+   # group_by(cluster) %>%
+    top_n(n = 50, wt = avg_log2FC) -> top10
+DoHeatmap(refquery, features = top10$gene) + NoLegend()
+ggsave(here('figure/Gene_Ontology/after_scaling.pdf')) 
+```
+
+
+
+
+
+
+
+
+
+
+
+

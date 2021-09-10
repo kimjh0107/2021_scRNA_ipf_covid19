@@ -1,0 +1,187 @@
+---
+title: "Pathway_Dotplot"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+```
+
+```{r}
+cells <- refquery
+```
+
+```{r}
+head(cells)
+```
+
+```{r}
+unique(cells$Diagnosis)
+```
+
+```{r}
+rm(cells, cells_Control, cells_COVID, cells_IPF)
+```
+
+
+# IPF subset 한 이후 이름 변경 
+```{r}
+cells_IPF <- subset(x = refquery, subset = Diagnosis == "IPF")
+cells_COVID <- subset(x = refquery, subset = Diagnosis == "COVID")
+cells_Control <- subset(x = refquery, subset = Diagnosis == "Control")
+```
+
+```{r}
+unique(cells_IPF$cell_type_submain)
+```
+
+```{r}
+cells_IPF@meta.data$cell_type_new_submain <- recode(cells_IPF@meta.data$cell_type_submain,
+                                                    "M2 Macrophage" = "M2 Macrophage_IPF",
+                                                    "Adventitial Fibroblasts" = "Adventitial Fibroblasts_IPF",
+                                                    "Pathological Fibroblasts" = "Pathological Fibroblasts_IPF",
+                                                    "Vascular smooth muscle" = "Vascular smooth muscle_IPF",
+                                                    "Vein Cell" = "Vein Cell_IPF",
+                                                    "Myofibroblasts" = "Myofibroblasts_IPF",
+                                                    "Club Cell" = "Club Cell_IPF",
+                                                    "Monocyte" = "Monocyte_IPF", 
+                                                    "AT2" = "AT2_IPF",
+                                                    "Ciliated Cell" = "Ciliated Cell_IPF",
+                                                    "mDCs" = "mDCs_IPF",
+                                                    "M1 Macrophage" = "M1 Macrophage_IPF",
+                                                    "Basal Cell" = "Basal Cell_IPF",
+                                                    "Gobelt Cel" = "Gobelt Cell_IPF",
+                                                    "Mast Cell" = "Mast Cell_IPF",
+                                                    "Mesothelial Cell" = "Mesothelial Cell_IPF",
+                                                    "Lymphatic Cell" = "Lymphatic Cell_IPF",
+                                                    "CD4 Tcell" = "CD4 Tcell_IPF",
+                                                    "Airway smooth muscle" = "Airway smooth muscle_IPF",
+                                                    "Artery Cell" = "Artery Cell_IPF",
+                                                    "B Cell" = "B Cell_IPF",
+                                                    "Capillary Cell" = "Capillary Cell_IPF",
+                                                    "Plasma Cell" = "Plasma Cell_IPF",
+                                                    "AT1" = "AT1_IPF",
+                                                    "pDCs" = "pDCs_IPF",
+                                                    "CD8 Tcell" = "CD8 Tcell_IPF",
+                                                    "Neutrophil" = "Neutrophil_IPF",
+                                                    "Alveolar Fibroblasts" = "Alveolar Fibroblasts_IPF",
+                                                    "NK Cell" = "NK Cell_IPF")
+```
+
+```{r}
+unique(cells_COVID$cell_type_submain)
+```
+
+```{r}
+cells_COVID@meta.data$cell_type_new_submain <- recode(cells_COVID@meta.data$cell_type_submain,
+                                                    "Lipo Fibroblasts" = "Lipo Fibroblasts_COVID", 
+                                                    "M2 Macrophage" = "M2 Macrophage_COVID",
+                                                    "Adventitial Fibroblasts" = "Adventitial Fibroblasts_COVID",
+                                                    "Pathological Fibroblasts" = "Pathological Fibroblasts_COVID",
+                                                    "Vascular smooth muscle" = "Vascular smooth muscle_COVID",
+                                                    "Vein Cell" = "Vein Cell_COVID",
+                                                    "Myofibroblasts" = "Myofibroblasts_COVID",
+                                                    "Club Cell" = "Club Cell_COVID",
+                                                    "Monocyte" = "Monocyte_COVID", 
+                                                    "AT2" = "AT2_COVID",
+                                                    "Ciliated Cell" = "Ciliated Cell_COVID",
+                                                    "mDCs" = "mDCs_COVID",
+                                                    "M1 Macrophage" = "M1 Macrophage_COVID",
+                                                    "Basal Cell" = "Basal Cell_COVID",
+                                                    "Gobelt Cel" = "Gobelt Cell_COVID",
+                                                    "Mast Cell" = "Mast Cell_COVID",
+                                                    "Mesothelial Cell" = "Mesothelial Cell_COVID",
+                                                    "Lymphatic Cell" = "Lymphatic Cell_COVID",
+                                                    "CD4 Tcell" = "CD4 Tcell_COVID",
+                                                    "Airway smooth muscle" = "Airway smooth muscle_COVID",
+                                                    "Artery Cell" = "Artery Cell_COVID",
+                                                    "B Cell" = "B Cell_COVID",
+                                                    "Capillary Cell" = "Capillary Cell_COVID",
+                                                    "Plasma Cell" = "Plasma Cell_COVID",
+                                                    "AT1" = "AT1_COVID",
+                                                    "pDCs" = "pDCs_COVID",
+                                                    "CD8 Tcell" = "CD8 Tcell_COVID",
+                                                    "Neutrophil" = "Neutrophil_COVID",
+                                                    "Alveolar Fibroblasts" = "Alveolar Fibroblasts_COVID",
+                                                    "NK Cell" = "NK Cell_COVID")
+```
+
+```{r}
+unique(cells_Control$cell_type_submain)
+```
+
+```{r}
+cells_Control@meta.data$cell_type_new_submain <- recode(cells_Control@meta.data$cell_type_submain,
+                                                    "Lipo Fibroblasts" = "Lipo Fibroblasts_Control", 
+                                                    "M2 Macrophage" = "M2 Macrophage_Control",
+                                                    "Adventitial Fibroblasts" = "Adventitial Fibroblasts_Control",
+                                                    "Pathological Fibroblasts" = "Pathological Fibroblasts_Control",
+                                                    "Vascular smooth muscle" = "Vascular smooth muscle_Control",
+                                                    "Vein Cell" = "Vein Cell_Control",
+                                                    "Myofibroblasts" = "Myofibroblasts_Control",
+                                                    "Club Cell" = "Club Cell_Control",
+                                                    "Monocyte" = "Monocyte_Control", 
+                                                    "AT2" = "AT2_Control",
+                                                    "Ciliated Cell" = "Ciliated Cell_Control",
+                                                    "mDCs" = "mDCs_Control",
+                                                    "M1 Macrophage" = "M1 Macrophage_Control",
+                                                    "Basal Cell" = "Basal Cell_Control",
+                                                    "Gobelt Cel" = "Gobelt Cell_Control",
+                                                    "Mast Cell" = "Mast Cell_Control",
+                                                    "Mesothelial Cell" = "Mesothelial Cell_Control",
+                                                    "Lymphatic Cell" = "Lymphatic Cell_Control",
+                                                    "CD4 Tcell" = "CD4 Tcell_Control",
+                                                    "Airway smooth muscle" = "Airway smooth muscle_Control",
+                                                    "Artery Cell" = "Artery Cell_Control",
+                                                    "B Cell" = "B Cell_Control",
+                                                    "Capillary Cell" = "Capillary Cell_Control",
+                                                    "Plasma Cell" = "Plasma Cell_Control",
+                                                    "AT1" = "AT1_Control",
+                                                    "pDCs" = "pDCs_Control",
+                                                    "CD8 Tcell" = "CD8 Tcell_Control",
+                                                    "Neutrophil" = "Neutrophil_Control",
+                                                    "Alveolar Fibroblasts" = "Alveolar Fibroblasts_Control",
+                                                    "NK Cell" = "NK Cell_Control")
+```
+
+```{r}
+head(cells_Control)
+head(cells_COVID)
+head(cells_IPF)
+```
+
+cell_count_df %>% left_join(sum_cell_df, by = 'batch')
+pbmc.big <- merge(pbmc3k, y = c(pbmc4k, pbmc8k), add.cell.ids = c("3K", "4K", "8K"), project = "PBMC15K")
+
+# left join 
+```{r}
+pathway <- merge(cells_Control, y = c(cells_COVID, cells_IPF), project = "merge")
+```
+
+```{r}
+unique(pathway$cell_type_new_submain)
+```
+
+```{r}
+saveRDS(pathway, file = "pathway_newc_columns.RDS")
+```
+
+
+
+
+
+
+
+
+

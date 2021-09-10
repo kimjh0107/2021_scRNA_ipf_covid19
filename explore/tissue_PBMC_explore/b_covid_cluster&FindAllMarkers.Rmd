@@ -1,0 +1,86 @@
+---
+title: "Figure_1A"
+output: html_document
+output: github_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+```
+
+
+```{r}
+head(covid)
+```
+
+covid - sctransform 까지만 진행, 이후에 대해서 tutorial에 나온그대로  (reference와 나온그대로 진행)
+
+
+```{r}
+covid <- RunPCA(covid)
+covid <- RunUMAP(covid, dims = 1:30, verbose = FALSE, return.model=TRUE)
+
+covid <- FindNeighbors(covid, dims = 1:30, verbose = FALSE)
+covid <- FindClusters(covid, verbose = FALSE)
+```
+
+```{r}
+head(covid)
+```
+
+```{r}
+DimPlot(ild, label = TRUE) + NoLegend()
+```
+
+```{r}
+head(ild)
+```
+
+```{r}
+unique(covid$seurat_clusters)
+DimPlot(covid,label = TRUE) + NoLegend()
+DimPlot(covid, reduction = "umap" ,label = TRUE) + NoLegend()
+```
+find markers 
+```{r}
+cluster1.markers <- FindMarkers(covid, ident.1 = 1, min.pct = 0.25)
+head(cluster1.markers, n = 5)
+```
+
+```{r}
+head(covid)
+```
+
+```{r}
+head(cluster1.markers)
+```
+```{r}
+head(ild)
+```
+
+```{r}
+Cells(Cells)
+```
+
+```{r}
+covid_test = covid
+```
+
+
+```{r}
+covid_test <- FindAllMarkers(covid, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+head(covid_test)
+```
+
+
+
+
+

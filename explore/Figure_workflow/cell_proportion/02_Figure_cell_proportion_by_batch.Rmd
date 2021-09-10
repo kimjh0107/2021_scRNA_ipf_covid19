@@ -1,0 +1,81 @@
+---
+title: "02_Figure_cell_proportion_by_batch"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+
+# ------------------------------------------------------------------------------
+# Figure (1) 
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+```
+
+```{r}
+cells_2 <- refquery@meta.data
+
+cells_2 %>% select(cell_type_submain)
+
+cell_count_df <- cells_2 %>% 
+  select(cell_type_submain, cell_type_main) %>% 
+  group_by(cell_type_submain, cell_type_main) %>% 
+  summarise(count_cell = n(), .groups = "drop")
+
+sum_cell_df <- cell_count_df %>% 
+  group_by(cell_type_submain, cell_type_main) %>% 
+  summarise(sum_cell = sum(count_cell))
+
+sum2 <- cell_count_df %>% left_join(sum_cell_df, by = 'cell_type_submain') 
+
+as.data.frame(sum2)
+sum2
+```
+
+
+```{r}
+	ggplot(sum2, 
+       aes( x = cell_type_submain,
+            y = count_cell,
+            color = cell_type_main.x, 
+            fill = cell_type_main.x)) + 
+  geom_bar(stat = "identity", width = 0.5) +
+  labs(x = "Cell-Type", y="Cell - Count")+ 
+  facet_grid(~cell_type_main.x,
+             scales = "free",
+             space = "free") +
+  theme_classic() + 
+  theme(axis.text.x = element_text(angle = 45, vjust =1, hjust = 1, size = 8), legend.position = 'bottom') + NoLegend()
+
+#ggsave(here('figure/Figure_Workflow/cell_proportion_by_population.pdf')) 
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

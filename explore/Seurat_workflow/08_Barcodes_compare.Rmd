@@ -1,0 +1,143 @@
+---
+title: "08_Barcodes_compare"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+```{r}
+df <- readRDS(here('GSE135893_ILD_annotated_fullsize.rds'))
+refquery <- readRDS(here('05_Integrate_df_annotation.RDS'))
+```
+
+```{r}
+head(df)
+head(refquery)
+```
+
+# Add metadata rownames in df 
+```{r}
+df <- AddMetaData(df, rownames(refquery@meta.data), col.name = "cellbarcodes")
+df <- subset(x = df, subset = cellbarcodes %in% metadata$cellbarcodes)
+```
+
+```{r}
+metadata <- refquery@meta.data
+head(metadata)
+head(cells)
+head(df)
+```
+
+```{r}
+df <- AddMetaData(df, refquery@meta.data$integrated_snn_res.0.8, col.name ="int_cluster")
+```
+
+
+```{r}
+cells <- refquery@meta.data
+cells <- cells %>% inner_join(metadata %>% select(cell_type_main, integrated_snn_res.0.8), by = "cellbarcodes")
+```
+
+```{r}
+refquery@meta.data
+df <- AddMetaData(df, rownames(df@meta.data), col.name = "cellbarcodes")
+df <- subset(x = df, subset = cellbarcodes %in% metadata$cellbarcodes)
+```
+
+
+
+
+# Add metadata information
+metadata <- read_csv(here('data/IPF_metadata.csv'))
+ild <- AddMetaData(ild, rownames(ild@meta.data), col.name = "cellbarcodes")
+ild <- subset(x = ild, subset = cellbarcodes %in% metadata$cellbarcodes)
+cells <- ild@meta.data
+cells <- cells %>% left_join(metadata %>% select(Diagnosis, Sample_Name, Sample_Source, Status, celltype, population, cellbarcodes), by = "cellbarcodes")
+
+ild <- AddMetaData(ild, cells$Diagnosis, col.name = "Diagnosis")
+ild <- AddMetaData(ild, cells$Sample_Name, col.name = "Sample_Name")
+ild <- AddMetaData(ild, cells$Sample_Source, col.name = "Sample_Source")
+ild <- AddMetaData(ild, cells$Status, col.name = "Status")
+ild <- AddMetaData(ild, cells$celltype, col.name = "celltype")
+ild <- AddMetaData(ild, cells$population, col.name = "population")
+
+```{r}
+plan('multiprocess', workers = 20)
+options(future.globals.maxSize = 2e+05 * 1024^2)
+```
+
+```{r}
+anchors <- FindTransferAnchors(
+  reference = df,
+  query = refquery,
+  normalization.method = "LogNormalize",
+  reference.reduction = "pca",
+  dims = 1:50
+)
+```
+
+```{r}
+covid <- MapQuery(
+  anchorset = anchors,
+  query = refquery,
+  reference = df,
+  refdata = list(
+    celltype = "celltype",
+  ),
+  reference.reduction = "pca", 
+  reduction.model = "umap"
+)
+
+```
+
+# 이름을 refquery가 아닌 covid로 지정함 
+# predicted celltype covid 확인 
+```{r}
+head(covid)
+```
+
+
+
+```{r}
+#merge reference and query
+df$id <- 'reference'
+refquery$id <- 'query'
+merge <- merge(df, refquery)
+```
+
+```{r}
+merge <- ScaleData(object = merge)
+merge <- RunPCA(object = merge)
+merge <- FindNeighbors(merge, dims = 1:20)
+merge <- FindClusters(merge, resolution = 0.6)
+merge <- RunUMAP(object = merge, dims = 1:20)
+#head(merge)
+#DimPlot(merge, reduction = "umap", group.by = "cell_type_main", label = TRUE, label.size = 3, repel = TRUE)
+#DimPlot(merge, reduction = "umap", group.by = "celltype", label = TRUE, label.size = 3, repel = TRUE)
+
+```
+
+
+
+```{r}
+merge[["pca"]] <- merge(df[["pca"]], refquery[["pca"]])
+merge <- RunUMAP(merge, reduction = 'pca', dims = 1:50)
+DimPlot(merge, group.by = 'id', shuffle = TRUE)
+```
+
+
+
+

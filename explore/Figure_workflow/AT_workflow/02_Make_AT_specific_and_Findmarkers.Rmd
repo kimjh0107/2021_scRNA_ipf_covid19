@@ -1,0 +1,134 @@
+---
+title: "02_Make_AT_specific_and_Findmarkers"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(Seurat)
+library(here)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+fig3 <- subset(x = refquery, subset = cell_type_submain == "AT2" | cell_type_submain == "AT1")
+unique(fig3$cell_type_submain)
+
+DimPlot(fig3, group.by = "seurat_clusters", label = TRUE)
+DimPlot(fig3, group.by = "cell_type_submain", label = TRUE)
+```
+
+```{r}
+fig3 <- saveRDS(fig3, file = "fig3.RDS")
+```
+
+```{r}
+fig3@meta.data$new_submain <- ifelse(fig3@meta.data$seurat_clusters %in% c(22), "AT1_1", "NA")
+fig3@meta.data$new_submain <- ifelse(fig3@meta.data$seurat_clusters %in% c(10), "AT1_2", fig3@meta.data$new_submain)
+fig3@meta.data$new_submain <- ifelse(fig3@meta.data$seurat_clusters %in% c(21), "AT1_3", fig3@meta.data$new_submain)
+
+fig3@meta.data$new_submain <- ifelse(fig3@meta.data$seurat_clusters %in% c(29), "AT2_1", fig3@meta.data$new_submain)
+fig3@meta.data$new_submain <- ifelse(fig3@meta.data$seurat_clusters %in% c(33), "AT2_2", fig3@meta.data$new_submain)
+fig3@meta.data$new_submain <- ifelse(fig3@meta.data$seurat_clusters %in% c(3), "AT2_3", fig3@meta.data$new_submain)
+fig3@meta.data$new_submain <- ifelse(fig3@meta.data$seurat_clusters %in% c(17), "AT2_4", fig3@meta.data$new_submain)
+fig3@meta.data$new_submain <- ifelse(fig3@meta.data$seurat_clusters %in% c(14), "AT2_5", fig3@meta.data$new_submain)
+fig3@meta.data$new_submain <- ifelse(fig3@meta.data$seurat_clusters %in% c(28), "AT2_6", fig3@meta.data$new_submain)
+fig3@meta.data$new_submain <- ifelse(fig3@meta.data$seurat_clusters %in% c(2), "AT2_7", fig3@meta.data$new_submain)
+
+DimPlot(fig3, group.by = "new_submain", label = TRUE)
+```
+
+# AT1 : Cluster 22, 10, 21 
+# AT2 : Cluster 29, 33, 3, 17, 14, 28, 2
+
+# Findallmarkers를 통해서 gene expression 확인 
+```{r}
+fig3.markers <- FindAllMarkers(fig3,only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+```
+
+```{r}
+fig3.markers %>%
+    group_by(cluster) %>%
+    slice_max(n = 20, order_by = avg_log2FC)
+```
+
+```{r}
+write.csv(fig3.markers, "AT_specific_findallmarkers.csv")
+```
+
+```{r}
+# AT1 
+features22 <- c(
+'CAV1',
+'GRP',
+'AGER',
+'KRT17',
+'IGFBP7',
+'EMP2',
+'MMP7',
+'IL32',
+'KRT7',
+'RTKN2'
+)
+
+features10 <- c(
+'SCGB3A2',
+'CEACAM6',
+'CTSE',
+'C19orf33',
+'CRIP2',
+'SCGB1A1',
+'AQP5',
+'TNNC1',
+'FXYD3',
+'IFT57'
+)
+
+features21 <- c(
+'BPIFB1',
+'GRP',
+'CTSB',
+'TMEM190',
+'TFF3',
+'BPIFA1',
+'CALCA',
+'CAPS',
+'LCN2',
+'IGFBP2'
+)
+
+
+```
+
+# AT1 : Cluster 22, 10, 21 
+# AT2 : Cluster 29, 33, 3, 17, 14, 28, 2
+```{r}
+# AT1 
+FeaturePlot(fig3, features = features22)
+FeaturePlot(fig3, features = features10)
+FeaturePlot(fig3, features = features21)
+
+```
+
+# 이건 이상하게 전부다 결과가 나오는 것 확인 가능 
+# Findallmarekrs logfc로 나열을 한다음에 그 상위 유전자들도 결과가 나오는지에 대해서 확인 
+# 확인을 해본 결과 전부다 나오는 cluster도 존재하고 없는 cluster도 존재하는 것으로 확인됨 
+```{r}
+features_top_log <- c(
+'SCGB1A11',
+'BPIFB1',
+'SCGB3A11',
+'S100A21',
+'BPIFB11',
+'GRP1',
+'KRT17',
+'CAV11',
+'SFTPA2'
+)
+
+FeaturePlot(fig3, features = features_top_log)
+```
+
+# Heatmap 결과를 cluster별로 나누어서 한번 만들어보기 
+
+

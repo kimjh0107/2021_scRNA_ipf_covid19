@@ -1,0 +1,90 @@
+---
+title: "10_Every_celltype_annotation"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+
+```{r}
+refquery <- readRDS(here('explore/RDS/05_Integrate_df_annotation.RDS'))
+
+Immune <- read.csv(here('explore/RDS/celltype/Immune_celltype.csv'))
+Endothelial <- read.csv(here('explore/RDS/celltype/Endothelial_celltype.csv'))
+Epithelial <- read.csv(here('explore/RDS/celltype/Epithelial_celltype'))
+Mesenchymal <- read.csv(here('explore/RDS/celltype/Mesenchymal_celltype.csv'))
+```
+
+```{r}
+celltypes <- rbind.data.frame(Immune, Endothelial,Epithelial ,Mesenchymal)
+refquery@meta.data$cellbarcodes <- rownames(refquery@meta.data)
+```
+
+```{r}
+table(is.na(refquery@meta.data$cellbarcodes))
+```
+
+```{r}
+head(celltypes)
+unique(celltypes$cell_type_submain)
+```
+
+
+```{r}
+celltypes <- rbind.data.frame(Immune, Endothelial,Epithelial ,Mesenchymal, row = T)
+refquery@meta.data$barcode <- rownames(refquery@meta.data)
+```
+
+```{r}
+head(celltypes)
+```
+
+
+
+```{r}
+head(celltypes)
+table(is.na(refquery@meta.data$barcode))
+table(is.na(refquery@meta.data$cellbarcodes))
+
+```
+
+```{r}
+refquery@meta.data <- left_join(refquery@meta.data, celltypes, by = 'barcode')
+rownames(refquery@meta.data) <- refquery@meta.data$cellbarcodes
+refquery@meta.data$cell_type_submain <- ifelse(is.na(refquery@meta.data$cell_type_submain) == T, refquery@meta.data$cell_type_main, refquery@meta.data$cell_type_submain)
+
+```
+
+
+```{r}
+head(refquery)
+```
+
+```{r}
+unique(refquery@meta.data$cell_type_submain)
+```
+
+
+```{r}
+DimPlot(refquery, reduction = "umap", group.by = "cell_type_submain", label = TRUE, label.size = 2, repel = TRUE) + NoLegend()
+#ggsave(here('figure/03_celltype_matching/total_celltype_match.pdf'))
+```
+
+```{r}
+saveRDS(refquery, file = "Every_celltype.RDS")
+
+```
+

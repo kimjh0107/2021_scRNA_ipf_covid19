@@ -1,0 +1,187 @@
+---
+title: "11_COVID_FinddMarkers"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+```
+
+
+```{r}
+covid <- readRDS(here('explore/RDS/COVID_Clustering.RDS'))
+head(covid)
+```
+
+```{r}
+unique(covid@meta.data$seurat_clusters)
+```
+```{r}
+unique(covid@meta.data$orig.ident)
+```
+
+
+```{r}
+cluster0.markers <- FindMarkers(covid, ident.1 = 0, min.pct = 0.25)
+```
+
+```{r}
+head(cluster0.markers)
+```
+
+MPRL20 - NK T cell 
+GNB1	- 결과 X
+RER1 - NK T cell
+RPL22 - Natural killer T (NKT) cell ( 결과가 근데 더 다양함 )
+PARK7 - Natural killer T (NKT) cell	
+ENO1 - Natural killer T (NKT) cell	
+
+
+```{r}
+covid.markers <- FindAllMarkers(covid, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+covid.markers %>%
+    group_by(cluster) %>%
+    top_n(n = 7, wt = avg_log2FC)
+```
+
+
+
+```{r}
+cluster1.markers <- FindMarkers(covid, ident.1 = 1, min.pct = 0.25)
+head(clister1.markers, n =5)
+```
+
+```{r}
+cluster2.markers <- FindMarkers(covid, ident.1 = 2, min.pct = 0.25)
+head(clister2.markers, n =5)
+```
+
+```{r}
+cluster3.markers <- FindMarkers(covid, ident.1 = 3, min.pct = 0.25)
+head(clister3.markers, n =5)
+```
+
+```{r}
+cluster4.markers <- FindMarkers(covid, ident.1 = 4, min.pct = 0.25)
+head(clister4.markers, n =5)
+```
+
+```{r}
+cluster5.markers <- FindMarkers(covid, ident.1 = 5, min.pct = 0.25)
+head(clister5.markers, n =5)
+```
+
+```{r}
+cluster6.markers <- FindMarkers(covid, ident.1 = 6, min.pct = 0.25)
+head(clister6.markers, n =5)
+```
+
+```{r}
+cluster7.markers <- FindMarkers(covid, ident.1 = 7, min.pct = 0.25)
+head(clister7.markers, n =5)
+```
+
+```{r}
+cluster8.markers <- FindMarkers(covid, ident.1 = 8, min.pct = 0.25)
+head(clister8.markers, n =5)
+```
+
+```{r}
+cluster9.markers <- FindMarkers(covid, ident.1 = 9, min.pct = 0.25)
+head(clister9.markers, n =5)
+```
+
+```{r}
+cluster10.markers <- FindMarkers(covid, ident.1 = 10, min.pct = 0.25)
+head(clister10.markers, n =5)
+```
+
+```{r}
+cluster11.markers <- FindMarkers(covid, ident.1 = 11, min.pct = 0.25)
+head(clister11.markers, n =5)
+```
+
+```{r}
+cluster12.markers <- FindMarkers(covid, ident.1 = 12, min.pct = 0.25)
+head(clister12.markers, n =5)
+```
+
+```{r}
+cluster13.markers <- FindMarkers(covid, ident.1 = 13, min.pct = 0.25)
+head(clister13.markers, n =5)
+```
+
+```{r}
+cluster14.markers <- FindMarkers(covid, ident.1 = 14, min.pct = 0.25)
+head(clister14.markers, n =5)
+```
+
+```{r}
+cluster15.markers <- FindMarkers(covid, ident.1 = 15, min.pct = 0.25)
+head(clister15.markers, n =5)
+```
+
+```{r}
+cluster16.markers <- FindMarkers(covid, ident.1 = 16, min.pct = 0.25)
+head(clister16.markers, n =5)
+```
+
+```{r}
+cluster17.markers <- FindMarkers(covid, ident.1 = 17, min.pct = 0.25)
+head(clister17.markers, n =5)
+```
+
+```{r}
+cluster18.markers <- FindMarkers(covid, ident.1 = 18, min.pct = 0.25)
+head(clister18.markers, n =5)
+```
+
+```{r}
+cluster19.markers <- FindMarkers(covid, ident.1 = 19, min.pct = 0.25)
+head(clister19.markers, n =5)
+```
+
+```{r}
+cluster20.markers <- FindMarkers(covid, ident.1 = 20, min.pct = 0.25)
+head(clister20.markers, n =5)
+```
+
+```{r}
+cluster21.markers <- FindMarkers(covid, ident.1 = 21, min.pct = 0.25)
+head(clister21.markers, n =5)
+```
+
+```{r}
+cluster22.markers <- FindMarkers(covid, ident.1 = 22, min.pct = 0.25)
+head(clister22.markers, n =5)
+```
+
+```{r}
+cluster23.markers <- FindMarkers(covid, ident.1 = 23, min.pct = 0.25)
+head(clister23.markers, n =5)
+```
+
+```{r}
+cluster24.markers <- FindMarkers(covid, ident.1 = 24, min.pct = 0.25)
+head(clister24.markers, n =5)
+```
+
+```{r}
+cluster25.markers <- FindMarkers(covid, ident.1 = 25, min.pct = 0.25)
+head(clister25.markers, n =5)
+```
+
+
+
+
+
+
