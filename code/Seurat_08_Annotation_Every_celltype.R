@@ -17,4 +17,4 @@ celltypes <- rbind.data.frame(Immune, Epithelial, Endothelial, Mesenchymal)
 refquery@meta.data <- left_join(refquery@meta.data, celltypes, by = 'cellbarcodes')
 rownames(refquery@meta.data) <- refquery@meta.data$cellbarcodes
 
-saveRDS(refquery, file = "07_df.RDS" )
+saveRDS(refquery, file = "07_df.RDS")
