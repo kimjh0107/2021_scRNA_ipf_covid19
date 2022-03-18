@@ -1,0 +1,148 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(tidyverse)
+library(here)
+library(SingleCellExperiment)
+library(cowplot)
+library(knitr)
+library(sctransform)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+```{r}
+macrophage <- readRDS(here('explore/RDS/macrophage_journal_replicaton3.RDS'))
+```
+```{r}
+
+head(macrophage)
+```
+
+
+```{r}
+DimPlot(macrophage, group.by = "new_submain", label = T)
+DimPlot(macrophage, group.by = "Diagnosis", label = T)
+DimPlot(macrophage, group.by = "cell_type_submain", label = T)
+DimPlot(macrophage, group.by = "Diagnosis_tag", label = T, repel = T) 
+
+```
+
+```{r}
+control <- subset(macrophage, subset = Diagnosis == "Control")
+covid <- subset(macrophage, subset = Diagnosis == "COVID")
+ipf <- subset(macrophage, subset = Diagnosis == "IPF")
+```
+
+```{r}
+DimPlot(control, group.by = "Diagnosis", label = T)
+DimPlot(covid, group.by = "Diagnosis", label = T)
+DimPlot(ipf, group.by = "Diagnosis", label = T)
+```
+
+
+```{r}
+DefaultAssay(macrophage) <- "RNA"
+```
+
+# M2A
+```{r}
+DimPlot(macrophage, group.by = "Diagnosis", label = T)
+FeaturePlot(macrophage, features = c("MRC1"))  # CD206
+FeaturePlot(macrophage, features = c("RETNLB"))  # FIZZ1
+FeaturePlot(macrophage, features = c("IL10"))
+FeaturePlot(macrophage, features = c("ARG1"))
+FeaturePlot(macrophage, features = c("CHI3L1")) # YM1
+FeaturePlot(macrophage, features = c("TGFB1"))  # TGF-B
+
+FeaturePlot(macrophage, features = c("IL1R1"))  
+FeaturePlot(macrophage, features = c("IL4"))  
+FeaturePlot(macrophage, features = c("IL13")) 
+
+```
+
+# M2B
+```{r}
+DimPlot(macrophage, group.by = "Diagnosis", label = T)
+FeaturePlot(macrophage, features = c("MRC1"))  # CD206
+FeaturePlot(macrophage, features = c("IL1B"))
+FeaturePlot(macrophage, features = c("IL6"))
+FeaturePlot(macrophage, features = c("TNF"))  # TNF-a
+FeaturePlot(macrophage, features = c("IL12A"))
+FeaturePlot(macrophage, features = c("IL10"))  
+```
+
+# M2C
+```{r}
+DimPlot(macrophage, group.by = "Diagnosis", label = T)
+FeaturePlot(macrophage, features = c("MRC1"))  # CD206
+FeaturePlot(macrophage, features = c("CD163")) 
+FeaturePlot(macrophage, features = c("MERTK"))
+FeaturePlot(macrophage, features = c("IL10"))
+FeaturePlot(macrophage, features = c("TGFB1"))  # TGF-B
+
+FeaturePlot(macrophage, features = c("TLR1"))  
+FeaturePlot(macrophage, features = c("TLR8"))  
+FeaturePlot(macrophage, features = c("ARG1"))  
+
+```
+
+# M2D
+```{r}
+DimPlot(macrophage, group.by = "Diagnosis", label = T)
+FeaturePlot(macrophage, features = c("VEGFA"))  # VEGF 
+FeaturePlot(macrophage, features = c("IL10")) 
+FeaturePlot(macrophage, features = c("TGFB1"))  # TGF-B
+FeaturePlot(macrophage, features = c("IL12A"))  
+FeaturePlot(macrophage, features = c("TNF"))  # TNF-a
+```
+
+# M1 M2 markers
+
+# M1 
+```{r}
+
+FeaturePlot(macrophage, features = c("IL12A"))
+FeaturePlot(macrophage, features = c("TNF"))  # TNF-a
+FeaturePlot(macrophage, features = c("IL6"))
+FeaturePlot(macrophage, features = c("IL12B")) # IL23 
+FeaturePlot(macrophage, features = c("CXCL8"))
+FeaturePlot(macrophage, features = c("CXCL9"))
+FeaturePlot(macrophage, features = c("CXCL10"))
+FeaturePlot(macrophage, features = c("CXCL16"))
+FeaturePlot(macrophage, features = c("CCL2"))
+FeaturePlot(macrophage, features = c("CCL3"))
+FeaturePlot(macrophage, features = c("CCL5"))
+
+```
+
+# M2 
+```{r}
+FeaturePlot(macrophage, features = c("CXCR1"))
+FeaturePlot(macrophage, features = c("CXCR2"))
+FeaturePlot(macrophage, features = c("CCL17"))
+FeaturePlot(macrophage, features = c("CCL18"))
+FeaturePlot(macrophage, features = c("CCL22"))
+FeaturePlot(macrophage, features = c("CCL24"))
+FeaturePlot(macrophage, features = c("FCER2")) # CD23
+FeaturePlot(macrophage, features = c("CD163"))
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+

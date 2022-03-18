@@ -1,0 +1,268 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/val_integration.RDS'))
+```
+
+```{r}
+refquery@meta.data$cellbarcodes <- rownames(refquery@meta.data)
+table(is.na(refquery$cellbarcodes))
+```
+
+
+```{r}
+refquery$row <- substr(rownames(refquery@meta.data), 1, 5)
+
+# Diagnosis
+refquery@meta.data$Diagnosis <- ifelse(refquery@meta.data$row %in% c("val7_", "val8_", "val9_"), "Healthy Control", refquery@meta.data$Diagnosis)
+refquery@meta.data$Diagnosis <- ifelse(refquery@meta.data$row %in% c("val1_", "val2_", "val4_"), "COVID moderate", refquery@meta.data$Diagnosis)
+refquery@meta.data$Diagnosis <- ifelse(refquery@meta.data$row %in% c("val3_", "val5_", "val6_", "val10", "val11", "val12"), "COVID severe", refquery@meta.data$Diagnosis)
+refquery <- subset(refquery, Diagnosis != "Control")
+
+unique(refquery$Diagnosis)
+```
+
+```{r}
+# HC - healty control 
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val7_"), "HC1", "NA")
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val8_"), "HC2", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val9_"), "HC3", refquery@meta.data$Diagnosis_tag)
+
+# M - moderate 
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val1_"), "M1", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val2_"), "M2", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val4_"), "M3", refquery@meta.data$Diagnosis_tag)
+
+# S - severe 
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val3_"), "S1", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val5_"), "S2", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val6_"), "S3", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val10"), "S4", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val11"), "S5", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val12"), "S6", refquery@meta.data$Diagnosis_tag)
+
+# IPF
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("F0043"), "I1", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("F0130"), "I2", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("F0121"), "I3", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("F0117"), "I4", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("F0137"), "I5", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("F0138"), "I6", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("ILD53"), "I7", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("ILD59"), "I8", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("ILD60"), "I9", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("ILD61"), "I10", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("ILD63"), "I11", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("F0139"), "I112", refquery@meta.data$Diagnosis_tag)
+```
+
+```{r}
+DimPlot(refquery, reduction = "umap", group.by = "seurat_clusters", label = TRUE, label.size = 3, repel = TRUE) 
+```
+
+
+```{r}
+# make markers 
+DefaultAssay(refquery) <- "RNA"
+features_epithelial <- c("EPCAM")
+features_endothelial <- c("PECAM1")
+features_immune <- c("PTPRC")
+features_mesenchymal_1 <- c("ACTA2", "MYH11", "PDGFRB")
+features_mesenchymal_2 <- c("LUM", "PDGFRA", "ACTA2", "MYLK")
+
+# check out expression 
+FeaturePlot(refquery, features = features_epithelial)
+FeaturePlot(refquery, features = features_endothelial)
+FeaturePlot(refquery, features = features_immune)
+FeaturePlot(refquery, features = features_mesenchymal_1)
+FeaturePlot(refquery, features = features_mesenchymal_2)
+
+DimPlot(refquery, reduction = "umap", group.by = "seurat_clusters", label = TRUE, label.size = 3, repel = TRUE) 
+DimPlot(refquery, reduction = "umap", group.by = "integrated_snn_res.0.8", label = TRUE, label.size = 3, repel = TRUE)
+```
+
+```{r}
+# population annotation
+refquery@meta.data$cell_type_main <- ifelse(refquery$integrated_snn_res.0.8 %in% c(30, 24, 14, 8, 39, 4, 23, 36, 2, 9), 'Epithelial cells', 'NA')
+refquery@meta.data$cell_type_main <- ifelse(refquery$integrated_snn_res.0.8 %in% c(25, 19, 20), 'Endothelial cells', refquery$cell_type_main)
+refquery@meta.data$cell_type_main <- ifelse(refquery$integrated_snn_res.0.8 %in% c(16, 10, 12, 22, 28, 34, 33, 37, 26, 27, 5, 1, 35, 13, 17, 15, 6, 21, 0, 11, 31, 7, 3), 'Immune cells', refquery$cell_type_main)
+refquery@meta.data$cell_type_main <- ifelse(refquery$integrated_snn_res.0.8 %in% c(29, 32, 18, 38 ), 'Mesenchymal cells', refquery$cell_type_main)
+
+#saveRDS(refquery, file = "05_Integrate_df_annotation.RDS")
+```
+
+```{r}
+DimPlot(refquery, group.by = "cell_type_main", label = T)
+DimPlot(refquery, group.by = "Diagnosis", label = T, repel = T)
+```
+
+```{r}
+# Epithelial cells 
+epithelial <- subset(refquery, cell_type_main == 'Epithelial cells')
+epithelial <- ScaleData(object = epithelial)
+epithelial <- FindVariableFeatures(object = epithelial)
+epithelial <- RunPCA(object = epithelial)
+epithelial <- FindNeighbors(epithelial, dims = 1:20)
+epithelial <- FindClusters(epithelial, resolution = 0.6)
+epithelial <- RunUMAP(object = epithelial, dims = 1:20)
+
+# Endothelial cells 
+endothelial <- subset(refquery, cell_type_main == 'Endothelial cells')
+endothelial <- ScaleData(object = endothelial)
+endothelial <- FindVariableFeatures(object = endothelial)
+endothelial <- RunPCA(object = endothelial)
+endothelial <- FindNeighbors(endothelial, dims = 1:20)
+endothelial <- FindClusters(endothelial, resolution = 0.6)
+endothelial <- RunUMAP(object = endothelial, dims = 1:20)
+
+# Immune cells 
+immune <- subset(refquery, cell_type_main == 'Immune cells')
+immune <- ScaleData(object = immune)
+immune <- FindVariableFeatures(object = immune)
+immune <- RunPCA(object = immune)
+immune <- FindNeighbors(immune, dims = 1:20)
+immune <- FindClusters(immune, resolution = 0.6)
+immune <- RunUMAP(object = immune, dims = 1:20)
+
+# Mesenchymal cells 
+mesenchymal <- subset(refquery, cell_type_main == 'Mesenchymal cells')
+mesenchymal <- ScaleData(object = mesenchymal)
+mesenchymal <- FindVariableFeatures(object = mesenchymal)
+mesenchymal <- RunPCA(object = mesenchymal)
+mesenchymal <- FindNeighbors(mesenchymal, dims = 1:20)
+mesenchymal <- FindClusters(mesenchymal, resolution = 0.6)
+mesenchymal <- RunUMAP(object = mesenchymal, dims = 1:20)
+```
+
+```{r}
+head(epithelial)
+```
+
+
+```{r}
+unique(immune$Diagnosis)
+
+control <- subset(immune, subset = Diagnosis == "Healthy Control")
+ipf <- subset(immune, subset = Diagnosis == "IPF")
+moderate <- subset(immune, subset = Diagnosis == "COVID moderate")
+covid <- subset(immune, subset = Diagnosis == "COVID severe")
+
+DimPlot(control, group.by = "Diagnosis", label = T, repel = T)
+DimPlot(ipf, group.by = "Diagnosis", label = T, repel = T)
+DimPlot(moderate, group.by = "Diagnosis", label = T, repel = T)
+DimPlot(covid, group.by = "Diagnosis", label = T, repel = T)
+
+```
+
+
+```{r}
+DimPlot(epithelial, group.by = "RNA_snn_res.0.6", label = T, repel = T)
+DimPlot(endothelial, group.by = "RNA_snn_res.0.6", label = T, repel = T)
+DimPlot(immune, group.by = "RNA_snn_res.0.6", label = T, repel = T)
+DimPlot(mesenchymal, group.by = "RNA_snn_res.0.6", label = T, repel = T)
+```
+
+
+```{r}
+DimPlot(immune, group.by = "RNA_snn_res.0.6", label = T, repel = T)
+DefaultAssay(immune) <- "RNA"
+FeaturePlot(immune, features = c("FABP4"))
+FeaturePlot(immune, features = c("FCN1"))
+FeaturePlot(immune, features = c("SPP1"))
+
+FeaturePlot(immune, features = c("MARCO", "MSR1", "MRC1")) # macrophage 
+FeaturePlot(immune, features = c('CD14', 'S100A8', '	FCGR3A')) # monocyte 
+FeaturePlot(immune, features = c('S100A9', 'IFITM2', 'FCGR3B')) # Neutrophil
+FeaturePlot(immune, features = c("CD3E", "CD8A", "CD8B")) # T cell markers
+FeaturePlot(immune, features = c("CD79A", "CD24", "MS4A1")) # B cell markers
+FeaturePlot(immune, features = c("KLRD1", "NKG7", "CD56")) # NK cell markers
+FeaturePlot(immune, features = c("CD79A", "CD27", "SLAMF7")) # plasma cell markers
+FeaturePlot(immune, features = c("LILRB4", "IRF8", "LILRA4")) # pDC cell markers
+FeaturePlot(immune, features = c("MHCII", "CLEC9A", "CD1C")) # mDC cell markers
+FeaturePlot(immune, features = c("MS4A2", "CPA3", "TPSAB1")) # mast cell markers
+
+```
+
+```{r}
+head(epithelial)
+```
+
+
+
+```{r}
+# Epithelial 
+epithelial@meta.data$cell_type_submain <- ifelse(epithelial@meta.data$RNA_snn_res.0.6 %in% c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18), "Epithelial", "NA")
+celltype_epithelial <- epithelial@meta.data %>% select("cellbarcodes", "cell_type_submain")
+write.csv(celltype_epithelial, "val_Epithelial_celltype")
+
+# Endothelial
+endothelial@meta.data$cell_type_submain <- ifelse(endothelial@meta.data$RNA_snn_res.0.6 %in% c(0,1,2,3,4,5,6,7,8,9,10), "Endothelial", "NA")
+celltype_endothelial <- endothelial@meta.data %>% select("cellbarcodes", "cell_type_submain")
+write.csv(celltype_endothelial, "val_Endothelial_celltype")
+
+# Immune
+immune@meta.data$cell_type_submain <- ifelse(immune@meta.data$RNA_snn_res.0.6 %in% c(14, 4, 13, 9, 15, 17, 18, 19), "Not Macrophage", "NA")
+immune@meta.data$cell_type_submain <- ifelse(immune@meta.data$RNA_snn_res.0.6 %in% c(
+10, 16, 3, 12, 0, 8,7,2, 11, 21, 5, 20, 1, 6), "Macrophage/Monocyte", immune@meta.data$cell_type_submain)
+celltype_immune <- immune@meta.data %>% select("cellbarcodes", "cell_type_submain")
+write.csv(celltype_immune, "val_Immune_celltype")
+
+# Mesenchymal
+mesenchymal@meta.data$cell_type_submain <- ifelse(mesenchymal@meta.data$RNA_snn_res.0.6 %in% c(0,1,2,3,4,5,6,7,8,9,10,11,12), "Mesenchymal", "NA")
+celltype_mesenchymal <- mesenchymal@meta.data %>% select("cellbarcodes", "cell_type_submain")
+write.csv(celltype_mesenchymal, "val_Mesenchymal_celltype")
+```
+
+```{r}
+table(is.na(celltype_epithelial$cellbarcodes))
+table(is.na(celltype_endothelial$cellbarcodes))
+table(is.na(celltype_immune$cellbarcodes))
+table(is.na(celltype_mesenchymal$cellbarcodes))
+```
+
+```{r}
+# Add celltypes 
+celltypes <- rbind.data.frame(celltype_epithelial, celltype_endothelial, celltype_immune, celltype_mesenchymal)
+
+# left join
+refquery@meta.data <- left_join(refquery@meta.data, celltypes, by = 'cellbarcodes')
+rownames(refquery@meta.data) <- refquery@meta.data$cellbarcodes
+```
+
+```{r}
+table(is.na(celltypes$cellbarcodes))
+table(is.na(refquery$cellbarcodes))
+
+```
+
+```{r}
+table(is.na(refquery$cell_type_submain))
+```
+
+```{r}
+head(refquery)
+```
+
+
+```{r}
+saveRDS(refquery, file = "val_integration_final.RDS" )
+```
+
+
+
+

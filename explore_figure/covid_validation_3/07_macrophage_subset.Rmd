@@ -1,0 +1,86 @@
+---
+title: "Untitled"
+output: html_document
+---
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+```
+
+```{r}
+refquery <- readRDS(here("explore_figure/covid_validation_3/RDS/05_Integrate_cell_type_main.RDS"))
+```
+
+```{r}
+head(refquery)
+table(is.na(refquery$cellbarcodes))
+refquery$cellbarcodes <- rownames(refquery@meta.data)
+table(is.na(refquery$cellbarcodes))
+```
+
+```{r}
+DimPlot(refquery, group.by = "cell_type_main", label = T)
+```
+
+```{r}
+immune <- subset(refquery, subset = cell_type_main == "Immune cells")
+```
+
+```{r}
+#DimPlot(immune, group.by = "RNA_snn_res.0.6", label = T, repel = T)
+DefaultAssay(immune) <- "RNA"
+
+DimPlot(immune, group.by = "seurat_clusters", label = T, repel = T) + NoLegend()
+FeaturePlot(immune, features = c("FABP4"))
+FeaturePlot(immune, features = c("FCN1"))
+FeaturePlot(immune, features = c("SPP1"))
+
+FeaturePlot(immune, features = c("MARCO")) # macrophage 
+FeaturePlot(immune, features = c("MSR1")) # macrophage 
+FeaturePlot(immune, features = c("MRC1")) # macrophage 
+
+FeaturePlot(immune, features = c('CD14')) # monocyte 
+FeaturePlot(immune, features = c('S100A8')) # monocyte 
+FeaturePlot(immune, features = c('FCGR3A')) # monocyte 
+
+FeaturePlot(immune, features = c('S100A9', 'IFITM2', 'FCGR3B')) # Neutrophil
+FeaturePlot(immune, features = c("CD3E", "CD8A", "CD8B")) # T cell markers
+FeaturePlot(immune, features = c("CD79A", "CD24", "MS4A1")) # B cell markers
+FeaturePlot(immune, features = c("KLRD1", "NKG7", "CD56")) # NK cell markers
+FeaturePlot(immune, features = c("CD79A", "CD27", "SLAMF7")) # plasma cell markers
+FeaturePlot(immune, features = c("LILRB4", "IRF8", "LILRA4")) # pDC cell markers
+FeaturePlot(immune, features = c("MHCII", "CLEC9A", "CD1C")) # mDC cell markers
+FeaturePlot(immune, features = c("MS4A2", "CPA3", "TPSAB1")) # mast cell markers
+
+```
+
+```{r}
+macrophage <- subset(immune, subset = seurat_clusters %in% c(9,2,3,4,5,26,22,10,11,0, 33, 36))
+saveRDS(macrophage, file = "macrophage_subset.RDS" )
+
+```
+
+```{r}
+DimPlot(macrophage, group.by = "Diagnosis", label = T)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+

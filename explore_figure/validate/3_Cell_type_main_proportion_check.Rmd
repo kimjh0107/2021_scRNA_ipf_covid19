@@ -1,0 +1,121 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Matrix)
+library(rhdf5)
+library(tidyverse)
+library(glue)
+library(here)
+library(hdf5r)
+library(Seurat)
+
+
+refquery <- readRDS(here("explore_figure/covid_validation_3/RDS/05_Integrate_cell_type_main.RDS"))
+```
+
+
+```{r}
+DimPlot(refquery, group.by = "cell_type_main", label = T)
+```
+
+```{r}
+subset <- subset(refquery, subset = cell_type_main == "Epithelial cells"| cell_type_main == "Immune cells")
+```
+
+```{r}
+DimPlot(subset, group.by = "cell_type_main", label = T)
+DimPlot(subset, group.by = "seurat_clusters", label = T, repel = T)
+
+```
+```{r}
+ggplot(subset@meta.data, aes(seurat_clusters, fill = Diagnosis)) +
+  geom_bar(position="dodge2") + theme_classic()
+ # coord_flip() 
+```
+
+```{r}
+epithelial <- subset(subset, subset = cell_type_main == "Epithelial cells")
+immune <- subset(subset, subset = cell_type_main == "Immune cells")
+
+```
+
+# Epithelial 
+```{r}
+cells <- epithelial@meta.data
+
+cell_count_df1 <- cells %>% 
+  select(Diagnosis) %>% 
+  group_by(Diagnosis) %>% 
+  summarise(count_cell = n(), .groups = "drop")
+
+#sum_cell_df1 <- cell_count_df1 %>% 
+#  group_by(Diagnosis) %>% 
+#  summarise(sum_cell = sum(count_cell))
+
+sum1 <- cell_count_df1# %>% left_join(sum_cell_df1, by = 'Diagnosis') 
+as.data.frame(sum1)
+head(sum1)
+```
+
+```{r}
+ggplot(sum1,
+       aes(x = Diagnosis, 
+           y = count_cell,
+           color = Diagnosis,
+           fill = Diagnosis)) + 
+  geom_bar(stat = "identity", width = 0.7) + 
+  labs(x = "IPF Cell-Type", y = "Cell-Percent") + 
+  facet_grid(~Diagnosis,
+             scales = "free",
+             space = "free") + 
+  theme_classic() + 
+  labs(title = "Epithelial Cells proportion") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 10, face = 'bold'), legend.position = 'bottom') + 
+  coord_cartesian(ylim = c(0,30000)) + 
+  NoLegend()
+```
+
+# Immune
+```{r}
+cells <- immune@meta.data
+
+cell_count_df1 <- cells %>% 
+  select(Diagnosis) %>% 
+  group_by(Diagnosis) %>% 
+  summarise(count_cell = n(), .groups = "drop")
+
+#sum_cell_df1 <- cell_count_df1 %>% 
+#  group_by(Diagnosis) %>% 
+#  summarise(sum_cell = sum(count_cell))
+
+sum1 <- cell_count_df1# %>% left_join(sum_cell_df1, by = 'Diagnosis') 
+as.data.frame(sum1)
+head(sum1)
+```
+
+```{r}
+ggplot(sum1,
+       aes(x = Diagnosis, 
+           y = count_cell,
+           color = Diagnosis,
+           fill = Diagnosis)) + 
+  geom_bar(stat = "identity", width = 0.7) + 
+  labs(x = "IPF Cell-Type", y = "Cell-Percent") + 
+  facet_grid(~Diagnosis,
+             scales = "free",
+             space = "free") + 
+  theme_classic() + 
+  labs(title = "Immune Cells proportion") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 10, face = 'bold'), legend.position = 'bottom') + 
+  coord_cartesian(ylim = c(0,30000)) + 
+  NoLegend()
+```
+
+
+
+

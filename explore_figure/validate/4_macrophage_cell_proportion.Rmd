@@ -1,0 +1,101 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+```{r}
+macrophage <- readRDS(here('explore_figure/validate/macrophage_subset_final.RDS'))
+```
+
+```{r}
+DimPlot(macrophage, group.by = "cell_type_main", label = T)
+DimPlot(macrophage, group.by = "seurat_clusters", label = T)
+
+```
+
+# Macrophage 
+```{r}
+cells <- macrophage@meta.data
+
+cell_count_df1 <- cells %>% 
+  select(Diagnosis) %>% 
+  group_by(Diagnosis) %>% 
+  summarise(count_cell = n(), .groups = "drop")
+
+#sum_cell_df1 <- cell_count_df1 %>% 
+#  group_by(Diagnosis) %>% 
+#  summarise(sum_cell = sum(count_cell))
+
+sum1 <- cell_count_df1# %>% left_join(sum_cell_df1, by = 'Diagnosis') 
+as.data.frame(sum1)
+head(sum1)
+```
+
+```{r}
+ggplot(sum1,
+       aes(x = Diagnosis, 
+           y = count_cell,
+           color = Diagnosis,
+           fill = Diagnosis)) + 
+  geom_bar(stat = "identity", width = 0.7) + 
+  labs(x = " ", y = "Cell-Count") + 
+  facet_grid(~Diagnosis,
+             scales = "free",
+             space = "free") + 
+  theme_classic() + 
+  labs(title = "Macrophage Cells proportion") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 10, face = 'bold'), legend.position = 'bottom') + 
+  coord_cartesian(ylim = c(0,30000)) + 
+  NoLegend()
+```
+
+
+
+
+```{r}
+ggplot(macrophage@meta.data, aes(seurat_clusters, fill = Diagnosis)) + 
+           geom_bar(position = "dodge2") + 
+  theme_classic()
+        #   scale_y_log10() 
+```
+
+
+```{r}
+head(macrophage)
+```
+
+
+```{r}
+DimPlot(macrophage, group.by = "Diagnosis", label = T, repel = T)
+```
+
+
+```{r}
+lung_tissue <- subset(macrophage, subset = Diagnosis == "Control"|Diagnosis == "COVID"|Diagnosis == "IPF")
+balf <- subset(macrophage, subset = Diagnosis == "Control B"|Diagnosis == "COVID moderate"|Diagnosis == "COVID severe")
+```
+
+```{r}
+DimPlot(lung_tissue, group.by = "Diagnosis", label = T, repel = T)
+DimPlot(balf, group.by = "Diagnosis", label = T, repel = T)
+
+```
+
+
+
+
+
+
+

@@ -1,0 +1,64 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/val_integration_final.RDS'))
+```
+
+```{r}
+DimPlot(refquery, group.by = "cell_type_submain", label = T)
+```
+
+```{r}
+refquery <- subset(refquery, subset = cell_type_submain %in% c("Macrophage/Monocyte") )
+
+refquery <- ScaleData(object = refquery)
+refquery <- FindVariableFeatures(object = refquery)
+refquery <- RunPCA(object = refquery)
+refquery <- FindNeighbors(refquery, dims = 1:50)
+refquery <- FindClusters(refquery, resolution = 0.8)
+refquery <- RunUMAP(object = refquery, dims = 1:30)
+```
+
+
+```{r}
+DimPlot(refquery, group.by = "cell_type_submain", label = T)
+DimPlot(refquery, group.by = "Diagnosis", label = T)
+
+control <- subset(refquery, subset = Diagnosis == "Healthy Control")
+ipf <- subset(refquery, subset = Diagnosis == "IPF")
+moderate <- subset(refquery, subset = Diagnosis == "COVID moderate")
+severe <- subset(refquery, subset = Diagnosis == "COVID severe")
+
+DimPlot(control, group.by = "Diagnosis", label = T)
+DimPlot(ipf, group.by = "Diagnosis", label = T)
+DimPlot(moderate, group.by = "Diagnosis", label = T)
+DimPlot(severe, group.by = "Diagnosis", label = T)
+
+```
+
+
+
+
+
+
+
+
+
+
+

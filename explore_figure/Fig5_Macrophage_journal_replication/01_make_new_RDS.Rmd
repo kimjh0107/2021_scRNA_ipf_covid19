@@ -1,0 +1,32 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(tidyverse)
+library(here)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+macrophage <- subset(refquery, subset = cell_type_submain %in% c("Monocyte", "M1 Macrophage", "M2 Macrophage"))
+rm(refuqery)
+macrophage <- ScaleData(object = macrophage)
+macrophage <- RunPCA(object = macrophage)
+macrophage <- FindNeighbors(macrophage, dims = 1:50)
+macrophage <- FindClusters(macrophage, resolution = 0.8)
+macrophage <- RunUMAP(object = macrophage, dims = 1:30)
+```
+
+```{r}
+saveRDS(macrophage, file = "macrophage_journal_replicaton.RDS")
+```
+
+
+
+
+
+
+

@@ -1,0 +1,139 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/val_integration.RDS'))
+```
+
+```{r}
+DefaultAssay(refquery) <- "RNA" 
+DimPlot(refquery, group.by = "seurat_clusters", label = T)
+FeaturePlot(refquery, features = c("PTPRC"))
+FeaturePlot(refquery, features = c("EPCAM"))
+FeaturePlot(refquery, features = c("PECAM1"))
+```
+
+```{r}
+#refquery <- subset(refquery, Diagnosis != "Control")
+unique(refquery$Diagnosis)
+```
+
+```{r}
+refquery_subset = refquery
+```
+
+
+
+```{r}
+refquery$row <- substr(rownames(refquery@meta.data), 1, 5)
+unique(refquery$row)
+```
+
+```{r}
+# Diagnosis
+refquery@meta.data$Diagnosis <- ifelse(refquery@meta.data$row %in% c("val7_", "val8_", "val9_"), "Healthy Control", refquery@meta.data$Diagnosis)
+refquery@meta.data$Diagnosis <- ifelse(refquery@meta.data$row %in% c("val1_", "val2_", "val4_"), "COVID moderate", refquery@meta.data$Diagnosis)
+refquery@meta.data$Diagnosis <- ifelse(refquery@meta.data$row %in% c("val3_", "val5_", "val6_", "val10", "val11", "val12"), "COVID severe", refquery@meta.data$Diagnosis)
+```
+
+```{r}
+unique(refquery$Diagnosis)
+refquery <- subset(refquery, Diagnosis != "Control")
+unique(refquery$Diagnosis)
+```
+
+```{r}
+unique(refquery$row)
+```
+
+
+```{r}
+# HC - healty control 
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val7_"), "HC1", "NA")
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val8_"), "HC2", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val9_"), "HC3", refquery@meta.data$Diagnosis_tag)
+
+# M - moderate 
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val1_"), "M1", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val2_"), "M2", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val4_"), "M3", refquery@meta.data$Diagnosis_tag)
+
+# S - severe 
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val3_"), "S1", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val5_"), "S2", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val6_"), "S3", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val10"), "S4", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val11"), "S5", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("val12"), "S6", refquery@meta.data$Diagnosis_tag)
+
+# IPF
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("F0043"), "I1", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("F0130"), "I2", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("F0121"), "I3", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("F0117"), "I4", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("F0137"), "I5", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("F0138"), "I6", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("ILD53"), "I7", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("ILD59"), "I8", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("ILD60"), "I9", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("ILD61"), "I10", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("ILD63"), "I11", refquery@meta.data$Diagnosis_tag)
+refquery@meta.data$Diagnosis_tag <- ifelse(refquery@meta.data$row %in% c("F0139"), "I112", refquery@meta.data$Diagnosis_tag)
+```
+
+```{r}
+DimPlot(refquery, group.by = "Diagnosis", label = T)
+
+# subset 
+ipf <- subset(refquery, subset = Diagnosis == "IPF")
+control <- subset(refquery, subset = Diagnosis == "Healthy Control")
+moderate <- subset(refquery, subset = Diagnosis == "COVID moderate")
+severe <- subset(refquery, subset = Diagnosis == "COVID severe")
+
+
+DimPlot(ipf, group.by = "Diagnosis", label = T)
+DimPlot(control, group.by = "Diagnosis", label = T)
+DimPlot(moderate, group.by = "Diagnosis", label = T)
+DimPlot(severe, group.by = "Diagnosis", label = T)
+
+```
+
+```{r}
+FeaturePlot(refquery, features = c("FABP4"))
+FeaturePlot(refquery, features = c("FCN1"))
+FeaturePlot(refquery, features = c("SPP1"))
+
+FeaturePlot(refquery, features = c("MARCO", "MSR1", "MRC1")) # macrophage 
+FeaturePlot(refquery, features = c('CD14', 'S100A8', '	FCGR3A')) # monocyte 
+FeaturePlot(refquery, features = c("EPCAM")) # epithelial 
+FeaturePlot(refquery, features = c("CD3E", "CD8A", "CD8B")) # T cell markers
+FeaturePlot(refquery, features = c('S100A8', 'S100A9', 'IFITM2', 'FCGR3B')) # Neutrophil
+FeaturePlot(refquery, features = c('COL1A1', 'PDGFRA'))  # Fibroblast
+```
+
+# macrophage, monocyte 부분에 대해서만 우선적으로 subset 을 해주도록 하기 
+```{r}
+DimPlot(refquery, group.by = "seurat_clusters", label = T, repel = T)
+```
+
+```{r}
+saveRDS(refquery_subset, file = "val_integration2.RDS")
+```
+
+
+
+

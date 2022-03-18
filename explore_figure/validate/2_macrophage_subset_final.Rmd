@@ -1,0 +1,109 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+library(Matrix)
+library(future)
+library(future.apply)
+
+immune <- readRDS(here("explore_figure/validate/final_subset_immune.RDS"))
+```
+
+```{r}
+DimPlot(immune, group.by = "seurat_clusters", label = T)
+```
+
+```{r}
+DimPlot(immune, group.by = "seurat_clusters", label = T)
+
+DefaultAssay(immune) <- "RNA"
+
+FeaturePlot(immune, features = c("FABP4"))
+FeaturePlot(immune, features = c("SPP1"))
+FeaturePlot(immune, features = c("FCN1"))
+
+
+FeaturePlot(immune, features = c("CD14"))
+FeaturePlot(immune, features = c("FCGR3A")) # CD16
+FeaturePlot(immune, features = c("MRC1")) # CD206
+FeaturePlot(immune, features = c("SIGLEC1")) # C169
+
+
+# M1 
+FeaturePlot(immune, features = c("IL12A"))
+FeaturePlot(immune, features = c("TNF"))  # TNF-a
+FeaturePlot(immune, features = c("IL6"))
+FeaturePlot(immune, features = c("IL12B")) # IL23 
+FeaturePlot(immune, features = c("CXCL8"))
+FeaturePlot(immune, features = c("CXCL9"))
+FeaturePlot(immune, features = c("CXCL10"))
+FeaturePlot(immune, features = c("CXCL16"))
+FeaturePlot(immune, features = c("CCL2"))
+FeaturePlot(immune, features = c("CCL3"))
+FeaturePlot(immune, features = c("CCL5"))
+# M2 
+FeaturePlot(immune, features = c("CXCR1"))
+FeaturePlot(immune, features = c("CXCR2"))
+FeaturePlot(immune, features = c("CCL17"))
+FeaturePlot(immune, features = c("CCL18"))
+FeaturePlot(immune, features = c("CCL22"))
+FeaturePlot(immune, features = c("CCL24"))
+FeaturePlot(immune, features = c("FCER2")) # CD23
+FeaturePlot(immune, features = c("CD163"))
+
+```
+
+```{r}
+head(immune)
+macrophage <- subset(immune, subset = seurat_clusters %in% c(20,10,12,22,8,4,11,0,14,2,7,3,1,16))
+DimPlot(macrophage, group.by = "seurat_clusters", label = T)
+```
+
+```{r}
+DefaultAssay(macrophage) <- "integrated"
+macrophage <- ScaleData(object = macrophage)
+macrophage <- RunPCA(object = macrophage)
+macrophage <- FindNeighbors(macrophage, dims = 1:50)
+macrophage <- FindClusters(macrophage, resolution = 1.0)
+macrophage <- RunUMAP(object = macrophage, dims = 1:30)
+
+DimPlot(macrophage, group.by = "seurat_clusters", label = T)
+
+```
+
+```{r}
+DimPlot(macrophage, group.by = "Diagnosis", label = T)
+
+```
+
+```{r}
+saveRDS(macrophage, file = "macrophage_subset_final.RDS")
+
+```
+
+
+```{r}
+head(macrophage)
+```
+
+
+```{r}
+ggplot(macrophage@meta.data, aes(seurat_clusters, fill = Diagnosis)) +
+  geom_bar(position="dodge2") 
+ # coord_flip() 
+
+```
+
+
+
+
+
+
+

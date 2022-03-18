@@ -1,0 +1,26 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+```
+
+```{r}
+Epithelial_test <- readRDS(here("explore/RDS/06_Epithelial_celltype.RDS"))
+```
+
+```{r}
+features <- c(
+"AGER", "SFTPC", "SCGB3A2", "FOXJ1", "KRT5", "MUC5B",
+'HIF1A', 'CHI3L1', 'NKX2-1', 'HHIP', 'FASN', 'HES1'
+)
+
+#FeaturePlot(Epithelial_test, features = features)
+#ggsave(here('explore_Figure/Figure2_AT2_Analysis/Figure2D.pdf')) 
+```
+
+

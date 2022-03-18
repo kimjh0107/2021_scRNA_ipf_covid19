@@ -1,0 +1,26 @@
+---
+title: "Untitled"
+output: html_document
+---
+```{r setup, include=FALSE}
+library(Seurat)
+library(tidyverse)
+library(here)
+library(DoMultiBarHeatmap)
+```
+
+```{r}
+macrophage <- readRDS(here('explore/RDS/macrophage_new_submain.RDS'))
+```
+
+```{r}
+DimPlot(macrophage, group.by = "new_submain3", label = T, repel = T)
+ggsave(here('explore_figure/Fig5/Fig5A_subcluster.pdf'))
+
+DimPlot(macrophage, group.by = "new_submain3", label = T, repel = T, split.by = "Diagnosis")
+
+```
+
+
+
+

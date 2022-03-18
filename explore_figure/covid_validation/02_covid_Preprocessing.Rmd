@@ -1,0 +1,42 @@
+---
+title: "Untitled"
+output: html_document
+---
+```{r setup, include=FALSE}
+library(Matrix)
+library(rhdf5)
+library(tidyverse)
+library(glue)
+library(here)
+library(hdf5r)
+library(Seurat)
+```
+
+```{r}
+covid_val <- readRDS(here('explore/RDS/COVID_validate_h5_to_SeuratObject_merge.RDS'))
+head(covid_val)
+```
+
+```{r}
+# QC 
+covid_val <- PercentageFeatureSet(covid_val, pattern = "^MT-", col.name = "percent.mt")
+covid_val <- subset(covid_val, subset = nFeature_RNA > 1000 & percent.mt < 25)
+
+# SCTransform & Preprocessing
+covid_val <- SCTransform(covid_val, method = "glmGamPoi", vars.to.regress = "percent.mt", verbose = FALSE)
+
+covid_val <- RunPCA(covid_val)
+covid_val <- RunUMAP(covid_val, dims = 1:30, verbose = FALSE, return.model=TRUE)
+covid_val <- FindNeighbors(covid_val, dims = 1:30, verbose = FALSE)
+covid_val <- FindClusters(covid_val, verbose = FALSE)
+```
+
+```{r}
+saveRDS(covid_val, file = "COVID_val_Preprocessing.RDS")
+```
+
+
+
+
+
+

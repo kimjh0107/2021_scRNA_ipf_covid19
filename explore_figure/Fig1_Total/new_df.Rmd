@@ -1,0 +1,60 @@
+---
+title: "03_Celltype_Annotation"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+```
+
+```{r}
+# read refquery
+refquery <- readRDS(here('explore/RDS/05_New_Integrate_df.RDS'))
+
+# read every celltype 
+Immune <- read.csv(here('explore/RDS/new_celltype/New_Immune_celltype.csv'))
+Epithelial <- read.csv(here('explore/RDS/new_celltype/New_Epithelial_celltype.csv'))
+Endothelial <- read.csv(here('explore/RDS/new_celltype/New_Endothelial_celltype.csv'))
+Mesenchymal <- read.csv(here('explore/RDS/new_celltype/New_Mesenchymal_celltype.csv'))
+```
+
+
+# refquery head 확인 -> 
+
+```{r}
+head(refquery)
+
+table(is.na(refquery$cellbarcodes))
+```
+
+
+```{r}
+# Add celltypes 
+celltypes <- rbind.data.frame(Immune, Epithelial, Endothelial, Mesenchymal)
+
+# left join
+refquery@meta.data <- left_join(refquery@meta.data, celltypes, by = 'cellbarcodes')
+rownames(refquery@meta.data) <- refquery@meta.data$cellbarcodes
+```
+
+```{r}
+table(is.na(refquery@meta.data))
+```
+
+```{r}
+saveRDS(refquery, file = "df.RDS" )
+```
+
+
+```{r}
+DimPlot(refquery, reduction = "umap", group.by = "cell_type_submain", label = TRUE, label.size = 3, repel = TRUE) + NoLegend()
+
+#features <- c("HES1")
+#FeaturePlot(refquery, features = features)
+```
+
+```{r}
+head(refquery)
+```

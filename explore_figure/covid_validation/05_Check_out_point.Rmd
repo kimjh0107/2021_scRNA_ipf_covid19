@@ -1,0 +1,39 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Matrix)
+library(rhdf5)
+library(tidyverse)
+library(glue)
+library(here)
+library(hdf5r)
+library(Seurat)
+```
+
+```{r}
+covid_val <- readRDS(here('explore/RDS/COVID_subset.RDS'))
+```
+
+```{r}
+DefaultAssay(covid_val) <- "RNA"
+
+DimPlot(covid_val, group.by = "seurat_clusters", label = T, repel = T)
+DimPlot(covid_val, group.by = "Diagnosis", label = T, repel = T)
+
+FeaturePlot(covid_val, features = c("MARCO", "MSR1", "MRC1")) # macrophage 
+FeaturePlot(covid_val, features = c('CD14', 'S100A8', '	FCGR3A')) # monocyte 
+FeaturePlot(covid_val, features = c("CD3E", "CD8A", "CD8B")) # T cell markers
+FeaturePlot(covid_val, features = c('S100A8', 'S100A9', 'IFITM2', 'FCGR3B')) # Neutrophil
+```
+
+
+
+
+
+
+
+
+

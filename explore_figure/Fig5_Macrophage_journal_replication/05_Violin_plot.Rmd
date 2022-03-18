@@ -1,0 +1,30 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(tidyverse)
+library(here)
+library(SingleCellExperiment)
+```
+
+```{r}
+macrophage <- readRDS(here('explore/RDS/macrophage_journal_replicaton3.RDS'))
+```
+
+```{r}
+VlnPlot(macrophage, features = c("FCN1"), group.by = "Diagnosis_tag", sort = F, pt.size = 0) + NoLegend()
+VlnPlot(macrophage, features = c("SPP1"), group.by = "Diagnosis_tag", sort = F, pt.size = 0) + NoLegend()
+VlnPlot(macrophage, features = c("FABP4"), group.by = "Diagnosis_tag", sort = F, pt.size = 0) + NoLegend()
+
+```
+
+
+
+
+
+
+
+

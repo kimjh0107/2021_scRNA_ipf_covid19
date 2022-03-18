@@ -1,0 +1,239 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Signac)
+library(Seurat)
+library(SeuratWrappers)
+library(monocle3)
+library(Matrix)
+library(ggplot2)
+library(patchwork)
+library(here)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+
+AT <- subset(x = refquery, subset = cell_type_submain == "AT2" | cell_type_submain == "AT1")
+rm(refquery)
+# subclustering
+AT <- ScaleData(object = AT)
+AT <- RunPCA(object = AT)
+AT <- FindNeighbors(AT, dims = 1:30)
+AT <- FindClusters(AT, resolution = 0.6)
+AT <- RunUMAP(object = AT, dims = 1:30)
+
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(6), "AT1_SC1", "NA")
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(7), "AT1_SC2", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(9), "AT1_SC3", AT@meta.data$new_submain)
+
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(10), "AT2_SC1", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(8), "AT2_SC2", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(5), "AT2_SC3", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(1), "AT2_SC4", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(2), "AT2_SC5", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(4), "AT2_SC6", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(3), "AT2_SC7", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(0), "AT2_SC8", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(11), "AT2_SC9", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(12), "AT2_SC10", AT@meta.data$new_submain)
+
+control <- subset(AT, subset = Diagnosis == "Control")
+covid <- subset(AT, subset = Diagnosis == "COVID")
+ipf <- subset(AT, subset = Diagnosis == "IPF")
+```
+
+```{r}
+AT1_control <- subset(control, subset = cell_type_submain == "AT1")
+AT2_control <- subset(control, subset = cell_type_submain == "AT2")
+
+AT1_covid <- subset(covid, subset = cell_type_submain == "AT1")
+AT2_covid <- subset(covid, subset = cell_type_submain == "AT2")
+
+AT1_ipf <- subset(ipf, subset = cell_type_submain == "AT1")
+AT2_ipf <- subset(ipf, subset = cell_type_submain == "AT2")
+```
+
+# Building tranjectories with monocle3 
+```{r}
+# control
+AT1_control.cds <- as.cell_data_set(AT1_control)
+AT1_control.cds <- cluster_cells(cds = AT1_control.cds, reduction_method = "UMAP")
+AT1_control.cds <- learn_graph(AT1_control.cds, use_partition = TRUE)
+
+AT2_control.cds <- as.cell_data_set(AT2_control)
+AT2_control.cds <- cluster_cells(cds = AT2_control.cds, reduction_method = "UMAP")
+AT2_control.cds <- learn_graph(AT2_control.cds, use_partition = TRUE)
+
+# covid
+AT1_covid.cds <- as.cell_data_set(AT1_covid)
+AT1_covid.cds <- cluster_cells(cds = AT1_covid.cds, reduction_method = "UMAP")
+AT1_covid.cds <- learn_graph(AT1_covid.cds, use_partition = TRUE)
+
+AT2_covid.cds <- as.cell_data_set(AT2_covid)
+AT2_covid.cds <- cluster_cells(cds = AT2_covid.cds, reduction_method = "UMAP")
+AT2_covid.cds <- learn_graph(AT2_covid.cds, use_partition = TRUE)
+
+# ipf
+AT1_ipf.cds <- as.cell_data_set(AT1_ipf)
+AT1_ipf.cds <- cluster_cells(cds = AT1_ipf.cds, reduction_method = "UMAP")
+AT1_ipf.cds <- learn_graph(AT1_ipf.cds, use_partition = TRUE)
+
+AT2_ipf.cds <- as.cell_data_set(AT2_ipf)
+AT2_ipf.cds <- cluster_cells(cds = AT2_ipf.cds, reduction_method = "UMAP")
+AT2_ipf.cds <- learn_graph(AT2_ipf.cds, use_partition = TRUE)
+```
+
+```{r}
+# control
+root_AT1_subset_control <- subset(AT1_control, subset = new_submain == "AT1_SC1")
+root_AT2_subset_control <- subset(AT2_control, subset = new_submain == "AT2_SC1")
+
+root_AT1_subset_control <- root_AT1_subset_control@meta.data$X
+root_AT2_subset_control <- root_AT2_subset_control@meta.data$X
+
+# covid
+root_AT1_subset_covid <- subset(AT1_covid, subset = new_submain == "AT1_SC1")
+root_AT2_subset_covid <- subset(AT2_covid, subset = new_submain == "AT2_SC1")
+
+root_AT1_subset_covid <- root_AT1_subset_covid@meta.data$X
+root_AT2_subset_covid <- root_AT2_subset_covid@meta.data$X
+
+# ipf
+root_AT1_subset_ipf <- subset(AT1_ipf, subset = new_submain == "AT1_SC1")
+root_AT2_subset_ipf <- subset(AT2_ipf, subset = new_submain == "AT2_SC1")
+
+root_AT1_subset_ipf <- root_AT1_subset_ipf@meta.data$X
+root_AT2_subset_ipf <- root_AT2_subset_ipf@meta.data$X
+```
+
+# order cells 
+```{r}
+# control
+AT1_control.cds <- order_cells(AT1_control.cds, reduction_method = "UMAP", root_cells = root_AT1_subset_control)
+AT2_control.cds <- order_cells(AT2_control.cds, reduction_method = "UMAP", root_cells = root_AT2_subset_control)
+
+# covid
+AT1_covid.cds <- order_cells(AT1_covid.cds, reduction_method = "UMAP", root_cells = root_AT1_subset_covid)
+AT2_covid.cds <- order_cells(AT2_covid.cds, reduction_method = "UMAP", root_cells = root_AT2_subset_covid)
+
+# ipf 
+AT1_ipf.cds <- order_cells(AT1_ipf.cds, reduction_method = "UMAP", root_cells = root_AT1_subset_ipf)
+AT2_ipf.cds <- order_cells(AT2_ipf.cds, reduction_method = "UMAP", root_cells = root_AT2_subset_ipf)
+```
+
+```{r}
+# control 
+# AT1 
+plot_cells(
+  cds = AT1_control.cds, 
+  color_cells_by = "pseudotime",
+  show_trajectory_graph = TRUE
+)
+
+# AT2 
+plot_cells(
+  cds = AT2_control.cds, 
+  color_cells_by = "pseudotime",
+  show_trajectory_graph = TRUE
+)
+
+# covid 
+# AT1 
+plot_cells(
+  cds = AT1_covid.cds, 
+  color_cells_by = "pseudotime",
+  show_trajectory_graph = TRUE
+)
+
+# AT2 
+plot_cells(
+  cds = AT2_covid.cds, 
+  color_cells_by = "pseudotime",
+  show_trajectory_graph = TRUE
+)
+
+# ipf 
+# AT1 
+plot_cells(
+  cds = AT1_ipf.cds, 
+  color_cells_by = "pseudotime",
+  show_trajectory_graph = TRUE
+)
+
+# AT2 
+plot_cells(
+  cds = AT2_ipf.cds, 
+  color_cells_by = "pseudotime",
+  show_trajectory_graph = TRUE
+)
+```
+
+```{r}
+# control
+AT1_control.cds <- AddMetaData(
+  object = control,
+  metadata = AT1_control.cds@principal_graph_aux@listData$UMAP$pseudotime,
+  col.name = "AT1"
+)
+
+AT2_control.cds <- AddMetaData(
+  object = control,
+  metadata = AT2_control.cds@principal_graph_aux@listData$UMAP$pseudotime,
+  col.name = "AT2"
+)
+
+FeaturePlot(AT1_control.cds, c("AT1"), pt.size = 0.1) & scale_color_viridis_c()
+ggsave(here('explore_figure/Fig3/Fig3B_Monocle_Control_AT1_monocle.pdf'))
+
+FeaturePlot(AT2_control.cds, c("AT2"), pt.size = 0.1) & scale_color_viridis_c()
+ggsave(here('explore_figure/Fig3/Fig3B_Monocle_Control_AT2_monocle.pdf'))
+
+
+# covid
+AT1_covid.cds <- AddMetaData(
+  object = covid,
+  metadata = AT1_covid.cds@principal_graph_aux@listData$UMAP$pseudotime,
+  col.name = "AT1"
+)
+
+AT2_covid.cds <- AddMetaData(
+  object = covid,
+  metadata = AT2_covid.cds@principal_graph_aux@listData$UMAP$pseudotime,
+  col.name = "AT2"
+)
+
+FeaturePlot(AT1_covid.cds, c("AT1"), pt.size = 0.1) & scale_color_viridis_c()
+ggsave(here('explore_figure/Fig3/Fig3B_Monocle_COVID_AT1_monocle.pdf'))
+
+FeaturePlot(AT2_covid.cds, c("AT2"), pt.size = 0.1) & scale_color_viridis_c()
+ggsave(here('explore_figure/Fig3/Fig3B_Monocle_COVID_AT2_monocle.pdf'))
+
+
+# ipf
+AT1_ipf.cds <- AddMetaData(
+  object = ipf,
+  metadata = AT1_ipf.cds@principal_graph_aux@listData$UMAP$pseudotime,
+  col.name = "AT1"
+)
+
+AT2_ipf.cds <- AddMetaData(
+  object = ipf,
+  metadata = AT2_ipf.cds@principal_graph_aux@listData$UMAP$pseudotime,
+  col.name = "AT2"
+)
+
+FeaturePlot(AT1_ipf.cds, c("AT1"), pt.size = 0.1) & scale_color_viridis_c()
+ggsave(here('explore_figure/Fig3/Fig3B_Monocle_IPF_AT1_monocle.pdf'))
+
+FeaturePlot(AT2_control.cds, c("AT2"), pt.size = 0.1) & scale_color_viridis_c()
+ggsave(here('explore_figure/Fig3/Fig3B_Monocle_Control_AT2_monocle.pdf'))
+
+```
+
+
+
+

@@ -1,0 +1,105 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+```
+
+```{r}
+refquery <- readRDS(here("explore_figure/covid_validation_3/RDS/05_Integrate_cell_type_main.RDS"))
+```
+
+```{r}
+unique(refquery$cell_type_main)
+```
+```{r}
+head(refquery)
+table(is.na(refquery$cellbarcodes))
+refquery$cellbarcodes <- rownames(refquery@meta.data)
+table(is.na(refquery$cellbarcodes))
+```
+
+
+
+```{r}
+# Epithelial cells 
+epithelial <- subset(refquery, cell_type_main == 'Epithelial cells')
+epithelial <- ScaleData(object = epithelial)
+epithelial <- FindVariableFeatures(object = epithelial)
+epithelial <- RunPCA(object = epithelial)
+epithelial <- FindNeighbors(epithelial, dims = 1:20)
+epithelial <- FindClusters(epithelial, resolution = 0.6)
+epithelial <- RunUMAP(object = epithelial, dims = 1:20)
+
+# Endothelial cells 
+endothelial <- subset(refquery, cell_type_main == 'Endothelial cells')
+endothelial <- ScaleData(object = endothelial)
+endothelial <- FindVariableFeatures(object = endothelial)
+endothelial <- RunPCA(object = endothelial)
+endothelial <- FindNeighbors(endothelial, dims = 1:20)
+endothelial <- FindClusters(endothelial, resolution = 0.6)
+endothelial <- RunUMAP(object = endothelial, dims = 1:20)
+
+# Immune cells 
+immune <- subset(refquery, cell_type_main == 'Immune cells')
+immune <- ScaleData(object = immune)
+immune <- FindVariableFeatures(object = immune)
+immune <- RunPCA(object = immune)
+immune <- FindNeighbors(immune, dims = 1:20)
+immune <- FindClusters(immune, resolution = 0.6)
+immune <- RunUMAP(object = immune, dims = 1:20)
+
+# Mesenchymal cells 
+mesenchymal <- subset(refquery, cell_type_main == 'Mesenchymal cells')
+mesenchymal <- ScaleData(object = mesenchymal)
+mesenchymal <- FindVariableFeatures(object = mesenchymal)
+mesenchymal <- RunPCA(object = mesenchymal)
+mesenchymal <- FindNeighbors(mesenchymal, dims = 1:20)
+mesenchymal <- FindClusters(mesenchymal, resolution = 0.6)
+mesenchymal <- RunUMAP(object = mesenchymal, dims = 1:20)
+```
+
+
+# Immune cell말고는 세분화하게 나누지 않기 
+```{r}
+DimPlot(epithelial, group.by = "RNA_snn_res.0.6", label = T, repel = T)
+DimPlot(endothelial, group.by = "RNA_snn_res.0.6", label = T, repel = T)
+DimPlot(immune, group.by = "RNA_snn_res.0.6", label = T, repel = T)
+DimPlot(mesenchymal, group.by = "RNA_snn_res.0.6", label = T, repel = T)
+```
+
+```{r}
+unique(immune$Diagnosis)
+```
+
+```{r}
+control <- subset(immune, subset = Diagnosis == "Control")
+control_b <- subset(immune, subset = Diagnosis == "Control B")
+ipf <- subset(immune, subset = Diagnosis == "IPF")
+covid <- subset(immune, subset = Diagnosis == "COVID")
+covid_severe <- subset(immune, subset = Diagnosis == "COVID severe")
+covid_moderate <- subset(immune, subset = Diagnosis == "COVID moderate")
+```
+```{r}
+DimPlot(control, group.by = "Diagnosis", label = T, repel = T)
+DimPlot(control_b, group.by = "Diagnosis", label = T, repel = T)
+DimPlot(ipf, group.by = "Diagnosis", label = T, repel = T)
+DimPlot(covid, group.by = "Diagnosis", label = T, repel = T)
+DimPlot(covid_severe, group.by = "Diagnosis", label = T, repel = T)
+DimPlot(covid_moderate, group.by = "Diagnosis", label = T, repel = T)
+
+```
+
+
+

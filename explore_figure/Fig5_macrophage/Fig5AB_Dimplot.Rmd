@@ -1,0 +1,76 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(tidyverse)
+library(here)
+```
+
+```{r}
+macrophage <- readRDS(here('explore/RDS/macrophage_figure.RDS'))
+```
+
+FCN1 : 6 9 7 23 13 
+
+FABP4: 10 4 2 20 14 11 
+
+SPP1: 0 1 12 8 
+
+발현되어있지 않은 cluster 마이너스로 표시되어 있는 부분: 3 5 16 17 18 19 21 22 15 
+
+```{r}
+macrophage@meta.data$new_submain <- ifelse(macrophage@meta.data$seurat_clusters %in% c(6, 9, 7, 23, 13), "FCN1+ Monocyte", "NA")
+macrophage@meta.data$new_submain <- ifelse(macrophage@meta.data$seurat_clusters %in% c(10, 4, 2, 20, 14, 11, 5), "FABP4+ Macrophage", macrophage@meta.data$new_submain)
+macrophage@meta.data$new_submain <- ifelse(macrophage@meta.data$seurat_clusters %in% c(0, 1, 12, 8), "SPP1+ Macrophage", macrophage@meta.data$new_submain)
+macrophage@meta.data$new_submain <- ifelse(macrophage@meta.data$seurat_clusters %in% c(3, 5, 16, 17, 18, 19, 21, 22, 15), "Macrophage SC", macrophage@meta.data$new_submain)
+```
+
+```{r}
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(4), "FABP4+_SC1", "NA")
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(11), "FABP4+_SC2", macrophage@meta.data$new_submain2)
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(2), "FABP4+_SC3", macrophage@meta.data$new_submain2)
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(20), "FABP4+_SC4", macrophage@meta.data$new_submain2)
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(10), "FABP4+_SC5", macrophage@meta.data$new_submain2)
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(14), "FABP4+_SC6", macrophage@meta.data$new_submain2)
+
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(0), "SPP1+_SC1", macrophage@meta.data$new_submain2)
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(8), "SPP1+_SC2", macrophage@meta.data$new_submain2)
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(1), "SPP1+_SC3", macrophage@meta.data$new_submain2)
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(12), "SPP1+_SC4", macrophage@meta.data$new_submain2)
+
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(13), "FCN1+_SC1", macrophage@meta.data$new_submain2)
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(7), "FCN1+_SC2", macrophage@meta.data$new_submain2)
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(6), "FCN1+_SC3", macrophage@meta.data$new_submain2)
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(9), "FCN1+_SC4", macrophage@meta.data$new_submain2)
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(23), "FCN1+_SC5", macrophage@meta.data$new_submain2)
+
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(15), "Ma_SC1", macrophage@meta.data$new_submain2)
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(21), "Ma_SC2", macrophage@meta.data$new_submain2)
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(3), "Ma_SC3", macrophage@meta.data$new_submain2)
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(5), "Ma_SC4", macrophage@meta.data$new_submain2)
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(22), "Ma_SC5", macrophage@meta.data$new_submain2)
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(18), "Ma_SC6", macrophage@meta.data$new_submain2)
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(17), "Ma_SC7", macrophage@meta.data$new_submain2)
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(19), "Ma_SC8", macrophage@meta.data$new_submain2)
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(16), "Ma_SC9", macrophage@meta.data$new_submain2)
+
+```
+
+
+```{r}
+DimPlot(macrophage, group.by = "seurat_clusters", label = TRUE)
+DimPlot(macrophage, group.by = "new_submain", label = TRUE, repel = TRUE)
+ggsave(here('explore_figure/Fig5/Fig5A.pdf'))
+DimPlot(macrophage, group.by = "Diagnosis", label = TRUE, repel = TRUE)
+ggsave(here('explore_figure/Fig5/Fig5B.pdf'))
+
+```
+
+
+
+
+
+

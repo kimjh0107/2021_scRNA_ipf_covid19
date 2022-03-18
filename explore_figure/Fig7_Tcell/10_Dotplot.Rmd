@@ -1,0 +1,99 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(tidyverse)
+library(here)
+library(SingleCellExperiment)
+library(cowplot)
+library(knitr)
+library(sctransform)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+```{r}
+tcell <- readRDS(here('explore/RDS/tcell4.RDS'))
+```
+
+```{r}
+gene <- c(
+"CXCL1",
+"CXCL2",
+"CXCL3",
+"CXCL5",
+"CXCL6",
+"CXCL8",
+"CXCL9",
+"CXCL10",
+"CXCL11",
+
+"CXCL16",
+
+"CCL2",
+"CCL3",
+"CCL3L1",
+"CCL4",
+"CCL5",
+"CCL7",
+"CCL8"
+)
+```
+
+
+
+```{r}
+Idents(tcell) <- "Diagnosis_tag"
+
+DotPlot(tcell, features = gene, cols = c("green","purple", "red"), dot.scale = 5, split.by = "Diagnosis", assay = "RNA") +
+  guides(color = guide_colorbar(title = "Gene Average Expression")) + 
+  guides(color = guide_colorbar(title = 'Average Expression')) + 
+  theme_classic() + 
+  RotatedAxis() + 
+  labs(title = "Tcell") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        axis.text.y = element_text(vjust = 1, hjust = 1, size =8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 12, face = 'bold'), legend.position = 'right') 
+
+```
+
+```{r}
+macrophage <- readRDS(here('explore/RDS/macrophage_journal_replicaton3.RDS'))
+```
+
+```{r}
+Idents(macrophage) <- "Diagnosis_tag"
+
+DotPlot(macrophage, features = gene, cols = c("green","purple", "red"), dot.scale = 5, split.by = "Diagnosis", assay = "RNA") +
+  guides(color = guide_colorbar(title = "Gene Average Expression")) + 
+  guides(color = guide_colorbar(title = 'Average Expression')) + 
+  theme_classic() + 
+  RotatedAxis() + 
+  labs(title = "Tcell") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        axis.text.y = element_text(vjust = 1, hjust = 1, size =8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 12, face = 'bold'), legend.position = 'right') 
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

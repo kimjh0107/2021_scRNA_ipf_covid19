@@ -1,0 +1,143 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(tidyverse)
+library(here)
+library(SingleCellExperiment)
+library(cowplot)
+library(knitr)
+library(sctransform)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+```{r}
+tcell <- readRDS(here('explore/RDS/tcell4.RDS'))
+```
+
+```{r}
+control <- subset(tcell, subset = Diagnosis == "Control")
+covid <- subset(tcell, subset = Diagnosis == "COVID")
+ipf <- subset(tcell, subset = Diagnosis == "IPF")
+```
+
+# Control
+```{r}
+cells_IPF <- control@meta.data
+cells_IPF %>% select(new_submain2)
+
+cell_count_df1 <- cells_IPF %>% 
+  select(new_submain2, cell_type_submain) %>% 
+  group_by(new_submain2, cell_type_submain) %>% 
+  summarise(count_cell = n(), .groups = "drop")
+
+sum_cell_df1 <- cell_count_df1 %>% 
+  group_by(new_submain2, cell_type_submain) %>% 
+  summarise(sum_cell = sum(count_cell))
+
+sum1 <- cell_count_df1 %>% left_join(sum_cell_df1, by = 'cell_type_submain') 
+as.data.frame(sum1)
+
+
+ggplot(sum1,
+       aes(x = new_submain2.x, 
+           y = count_cell,
+           color = new_submain2.x,
+           fill = new_submain2.x)) + 
+  geom_bar(stat = "identity", width = 0.7) + 
+  labs(x = "IPF Cell-Type", y = "Cell-Percent") + 
+  facet_grid(~new_submain2.x,
+             scales = "free",
+             space = "free") + 
+  theme_classic() + 
+  labs(title = "Control Cell proportion") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 10, face = 'bold'), legend.position = 'bottom') + 
+  coord_cartesian(ylim = c(0,17000)) + 
+  NoLegend()
+
+ggsave(here('explore_figure/Fig7_Tcell/control_cell_proportion.pdf')) 
+```
+
+# COVID
+```{r}
+cells_IPF <- covid@meta.data
+cells_IPF %>% select(new_submain2)
+
+cell_count_df1 <- cells_IPF %>% 
+  select(new_submain2, cell_type_submain) %>% 
+  group_by(new_submain2, cell_type_submain) %>% 
+  summarise(count_cell = n(), .groups = "drop")
+
+sum_cell_df1 <- cell_count_df1 %>% 
+  group_by(new_submain2, cell_type_submain) %>% 
+  summarise(sum_cell = sum(count_cell))
+
+sum1 <- cell_count_df1 %>% left_join(sum_cell_df1, by = 'cell_type_submain') 
+as.data.frame(sum1)
+
+
+ggplot(sum1,
+       aes(x = new_submain2.x, 
+           y = count_cell,
+           color = new_submain2.x,
+           fill = new_submain2.x)) + 
+  geom_bar(stat = "identity", width = 0.7) + 
+  labs(x = "IPF Cell-Type", y = "Cell-Percent") + 
+  facet_grid(~new_submain2.x,
+             scales = "free",
+             space = "free") + 
+  theme_classic() + 
+  labs(title = "COVID Cell proportion") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 10, face = 'bold'), legend.position = 'bottom') + 
+  coord_cartesian(ylim = c(0,17000)) + 
+  NoLegend()
+
+ggsave(here('explore_figure/Fig7_Tcell/covid_cell_proportion.pdf')) 
+```
+
+# IPF
+```{r}
+cells_IPF <- ipf@meta.data
+cells_IPF %>% select(new_submain2)
+
+cell_count_df1 <- cells_IPF %>% 
+  select(new_submain2, cell_type_submain) %>% 
+  group_by(new_submain2, cell_type_submain) %>% 
+  summarise(count_cell = n(), .groups = "drop")
+
+sum_cell_df1 <- cell_count_df1 %>% 
+  group_by(new_submain2, cell_type_submain) %>% 
+  summarise(sum_cell = sum(count_cell))
+
+sum1 <- cell_count_df1 %>% left_join(sum_cell_df1, by = 'cell_type_submain') 
+as.data.frame(sum1)
+
+
+ggplot(sum1,
+       aes(x = new_submain2.x, 
+           y = count_cell,
+           color = new_submain2.x,
+           fill = new_submain2.x)) + 
+  geom_bar(stat = "identity", width = 0.7) + 
+  labs(x = "IPF Cell-Type", y = "Cell-Percent") + 
+  facet_grid(~new_submain2.x,
+             scales = "free",
+             space = "free") + 
+  theme_classic() + 
+  labs(title = "IPF Cell proportion") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 10, face = 'bold'), legend.position = 'bottom') + 
+  coord_cartesian(ylim = c(0,17000)) + 
+  NoLegend()
+
+ggsave(here('explore_figure/Fig7_Tcell/ipf_cell_proportion.pdf')) 
+```
+
+

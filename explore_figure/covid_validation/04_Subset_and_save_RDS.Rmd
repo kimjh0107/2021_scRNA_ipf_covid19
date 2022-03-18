@@ -1,0 +1,73 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Matrix)
+library(rhdf5)
+library(tidyverse)
+library(glue)
+library(here)
+library(hdf5r)
+library(Seurat)
+```
+
+```{r}
+covid_val <- readRDS(here('explore/RDS/COVID_val_new_column_Diagnosis.RDS'))
+```
+
+```{r}
+DimPlot(covid_val, group.by = "seurat_clusters", label = T, repel = T)
+DimPlot(covid_val, group.by = "Diagnosis", label = T, repel = T)
+
+```
+
+```{r}
+DefaultAssay(covid_val) <- "RNA"
+DimPlot(covid_val, group.by = "seurat_clusters", label = T, repel = T)
+FeaturePlot(covid_val, features = c("MARCO", "MSR1", "MRC1")) # macrophage 
+FeaturePlot(covid_val, features = c('CD14', 'S100A8', '	FCGR3A')) # monocyte 
+FeaturePlot(covid_val, features = c("EPCAM")) # epithelial 
+FeaturePlot(covid_val, features = c("CD3E", "CD8A", "CD8B")) # T cell markers
+FeaturePlot(covid_val, features = c('S100A8', 'S100A9', 'IFITM2', 'FCGR3B')) # Neutrophil
+FeaturePlot(covid_val, features = c('COL1A1', 'PDGFRA'))  # Fibroblast
+ 
+
+```
+
+```{r}
+FeaturePlot(covid_val, features = c("FABP4"))
+FeaturePlot(covid_val, features = c("FCN1"))
+FeaturePlot(covid_val, features = c("SPP1"))
+```
+
+우선은 macrophage/ monocyte로 확인되는 부분만 subset하도록 하기 
+```{r}
+covid_subset <- subset(covid_val, subset = seurat_clusters %in% c(3, 26, 12, 6, 16, 10, 2, 24, 0, 14, 9, 12, 8, 17, 23))
+```
+
+```{r}
+DimPlot(covid_subset , group.by = "seurat_clusters", label = T)
+```
+
+```{r}
+covid_subset <- ScaleData(object = covid_subset)
+covid_subset <- FindVariableFeatures(covid_subset)
+covid_subset <- RunPCA(object = covid_subset)
+covid_subset <- FindNeighbors(covid_subset, dims = 1:50)
+covid_subset <- FindClusters(covid_subset, resolution = 0.8)
+covid_subset <- RunUMAP(object = covid_subset, dims = 1:30)
+DimPlot(covid_subset , group.by = "seurat_clusters", label = T)
+
+```
+```{r}
+saveRDS(covid_subset, file = "COVID_subset.RDS")
+```
+
+
+
+
+
+
+

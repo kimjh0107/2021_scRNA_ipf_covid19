@@ -1,0 +1,66 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+```
+
+```{r}
+ild<- readRDS(here('explore/RDS/ipf_val_preprocess.RDS'))
+covid <- readRDS(here('explore/RDS/covid_val_preprocess.RDS'))
+```
+
+```{r}
+# split the dataset
+ipf.list <- SplitObject(ild, split.by = 'Diagnosis')
+object.list <- c(ipf.list, covid)
+```
+
+```{r}
+# Prepare object list 
+object.list <- lapply(X = object.list, FUN = function(x) {
+  x <- NormalizeData(x, verbose = T)
+  x <- FindVariableFeatures(x, selection.method = "vst", verbose = T)
+})
+
+features <- SelectIntegrationFeatures(object.list = object.list)
+
+```
+
+```{r}
+object.list <- future_lapply(X = object.list, FUN = function(x) {
+  x <- ScaleData(x, features = features, verbose = T)
+  x <- RunPCA(x, features = features, verbose = T)
+})
+```
+
+```{r}
+# Find anchors -> RPCA
+anchors <- FindIntegrationAnchors(object.list = object.list, reduction = 'rpca', dims = 1:50)
+
+# Integrate data sets
+refquery <- IntegrateData(anchorset = anchors, dims = 1:50)
+
+# Normal workflow
+refquery <- ScaleData(object = refquery)
+refquery <- RunPCA(object = refquery)
+refquery <- FindNeighbors(refquery, dims = 1:30)
+refquery <- FindClusters(refquery)
+refquery <- RunUMAP(object = refquery, dims = 1:30)
+
+saveRDS(refquery, file = "val_integration.RDS")
+```
+
+
+

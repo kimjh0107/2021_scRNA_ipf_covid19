@@ -1,0 +1,169 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(biomaRt)
+library(clusterProfiler)
+library(org.Hs.eg.db)
+```
+
+```{r}
+macrophage <- readRDS(here('explore/RDS/macrophage_journal_replicaton3.RDS'))
+
+DefaultAssay(macrophage) <- "RNA"
+Idents(macrophage) <- "new_submain"
+```
+
+```{r}
+mast_markers <- read_csv(here("explore_figure/Fig5"))
+
+```
+
+
+```{r}
+mast_markers
+
+fcn1 <- subset(mast_markers, subset = cluster == "FCN1+ Monocyte")
+mixed <- subset(mast_markers, subset = cluster == "Mixed Macrophage")
+spp1 <- subset(mast_markers, subset = cluster == "SPP1+ Macrophage")
+fabp4 <- subset(mast_markers, subset = cluster == "FABP4+ Macrophage")
+sftpc <- subset(mast_markers, subset = cluster == "SFTPC+ Macrophage")
+
+```
+
+```{r}
+suppressMessages(require(biomaRt))
+mart <- useMart("ensembl")
+head(listDatasets(mart))
+mart <- useDataset("hsapiens_gene_ensembl", mart = mart)
+
+gene_id <- getBM(attributes = c("ensembl_gene_id", "external_gene_name", "entrezgene_id"), mart = useDataset("hsapiens_gene_ensembl", useMart("ensembl")))
+
+fcn1_test <- merge(fcn1, gene_id[,c(2,3)], by.x = "gene", by.y = "external_gene_name")
+mixed_test <- merge(mixed, gene_id[,c(2,3)], by.x = "gene", by.y = "external_gene_name")
+spp1_test <- merge(spp1, gene_id[,c(2,3)], by.x = "gene", by.y = "external_gene_name")
+fabp4_test <- merge(fabp4, gene_id[,c(2,3)], by.x = "gene", by.y = "external_gene_name")
+sftpc_test <- merge(sftpc, gene_id[,c(2,3)], by.x = "gene", by.y = "external_gene_name")
+
+```
+
+```{r}
+# fcn1
+fcn1_1 <- enrichGO(gene = fcn1_test$entrezgene_id,
+               OrgDb = org.Hs.eg.db,
+               pvalueCutoff = 0.05,
+               qvalueCutoff = 0.05,
+               ont = "all", 
+               readable = T)
+
+fcn1_2 <- enrichKEGG(gene = fcn1_test$entrezgene_id,
+                  organism = "hsa",
+                  pvalueCutoff = 0.05,
+                  qvalueCutoff = 0.05)
+
+barplot(fcn1_1, showCategory = 20)
+ggsave(here("explore_figure/Macrophage_journal_replication/FCN1_GO.pdf"))
+
+barplot(fcn1_2, showCategory = 20)
+
+```
+
+```{r}
+# mixed
+mixed_1 <- enrichGO(gene = mixed_test$entrezgene_id,
+               OrgDb = org.Hs.eg.db,
+               pvalueCutoff = 0.05,
+               qvalueCutoff = 0.05,
+               ont = "all", 
+               readable = T)
+
+mixed_2 <- enrichKEGG(gene = mixed_test$entrezgene_id,
+                  organism = "hsa",
+                  pvalueCutoff = 0.05,
+                  qvalueCutoff = 0.05)
+
+barplot(mixed_1, showCategory = 20)
+ggsave(here("explore_figure/Macrophage_journal_replication/FCN1_GO.pdf"))
+
+barplot(mixed_2, showCategory = 20)
+
+```
+
+```{r}
+# spp1
+spp1_1 <- enrichGO(gene = spp1_test$entrezgene_id,
+               OrgDb = org.Hs.eg.db,
+               pvalueCutoff = 0.05,
+               qvalueCutoff = 0.05,
+               ont = "all", 
+               readable = T)
+
+spp1_2 <- enrichKEGG(gene = spp1_test$entrezgene_id,
+                  organism = "hsa",
+                  pvalueCutoff = 0.05,
+                  qvalueCutoff = 0.05)
+
+barplot(spp1_1, showCategory = 20)
+barplot(spp1_2, showCategory = 20)
+
+```
+
+```{r}
+# fabp4
+fabp4_1 <- enrichGO(gene = fabp4_test$entrezgene_id,
+               OrgDb = org.Hs.eg.db,
+               pvalueCutoff = 0.05,
+               qvalueCutoff = 0.05,
+               ont = "all", 
+               readable = T)
+
+fabp4_2 <- enrichKEGG(gene = fabp4_test$entrezgene_id,
+                  organism = "hsa",
+                  pvalueCutoff = 0.05,
+                  qvalueCutoff = 0.05)
+
+barplot(fabp4_1, showCategory = 20)
+barplot(fabp4_2, showCategory = 20)
+
+```
+
+```{r}
+# sftpc
+sftpc_1 <- enrichGO(gene = sftpc_test$entrezgene_id,
+               OrgDb = org.Hs.eg.db,
+               pvalueCutoff = 0.05,
+               qvalueCutoff = 0.05,
+               ont = "all", 
+               readable = T)
+
+sftpc_2 <- enrichKEGG(gene = sftpc_test$entrezgene_id,
+                  organism = "hsa",
+                  pvalueCutoff = 0.05,
+                  qvalueCutoff = 0.05)
+
+barplot(sftpc_1, showCategory = 20)
+barplot(sftpc_2, showCategory = 20)
+
+```
+
+```{r}
+barplot(fcn1_1, showCategory = 20)
+ggsave(here("explore_figure/Macrophage_journal_replication/09_FCN1_GO.pdf"))
+
+barplot(mixed_1, showCategory = 20)
+ggsave(here("explore_figure/Macrophage_journal_replication/09_Mixed_GO.pdf"))
+
+barplot(spp1_1, showCategory = 20)
+ggsave(here("explore_figure/Macrophage_journal_replication/09_SPP1_GO.pdf"))
+
+barplot(fabp4_1, showCategory = 20)
+ggsave(here("explore_figure/Macrophage_journal_replication/09_FABP4_GO.pdf"))
+
+barplot(sftpc_1, showCategory = 20)
+ggsave(here("explore_figure/Macrophage_journal_replication/09_SFTPC_GO.pdf"))
+```

@@ -1,0 +1,37 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(tidyverse)
+library(here)
+library(DoMultiBarHeatmap)
+
+macrophage <- readRDS(here('explore/RDS/macrophage_new_submain.RDS'))
+```
+
+```{r}
+sub_cluster <- subset(macrophage, subset = new_submain == "FCN1+ Monocyte"| new_submain =="FABP4+ Macrophage"| new_submain == "SPP1+ Macrophage")
+sub_cluster <- subset(sub_cluster, subset = Diagnosis == "COVID"| Diagnosis == "IPF")
+
+Idents(sub_cluster) <- "new_submain3"
+DefaultAssay(sub_cluster) <- "integrated"
+sub_markers <- FindAllMarkers(sub_cluster, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+
+top10_1 <- sub_markers %>% 
+  group_by(cluster) %>% 
+  top_n(n = 10, wt = avg_log2FC)
+
+#DoHeatmap(sub_cluster, features = top10$gene) + NoLegend() 
+#DoMultiBarHeatmap(sub_cluster, features = top10_1$gene, group.by='Diagnosis', additional.group.by = c("new_submain"))
+```
+
+```{r}
+unique(macrophage$new_submain3)
+```
+
+
+
+

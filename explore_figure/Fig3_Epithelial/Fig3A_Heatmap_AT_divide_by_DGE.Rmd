@@ -1,0 +1,36 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(DoMultiBarHeatmap)
+```
+
+```{r}
+Epithelial_test <- readRDS(here("explore/RDS/06_Epithelial_celltype.RDS"))
+
+AT <- subset(Epithelial_test, subset = cell_type_submain %in% c("AT1", "AT2"))
+AT1 <- subset(Epithelial_test, subset = cell_type_submain == "AT1")
+AT2 <- subset(Epithelial_test, subset = cell_type_submain == "AT2")
+rm(Epithelial_test)
+```
+
+```{r}
+AT1_markers <- read_csv(here("AT1_markers.csv"))
+AT2_markers <- read_csv(here("AT2_markers.csv"))
+merge <- inner_join(AT1_markers, AT2_markers, by = "gene")
+
+AT1_genelist <- AT1_markers %>% head(30)
+AT2_genelist <- AT2_markers %>% head(30)
+
+AT_merge <- full_join(AT1_genelist, AT2_genelist, by = "gene")
+AT_merge
+```
+
+```{r}
+DoMultiBarHeatmap(AT, features = AT_merge$gene, group.by='cell_type_submain', additional.group.by = 'Diagnosis')
+```

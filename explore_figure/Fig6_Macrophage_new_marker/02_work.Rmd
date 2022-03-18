@@ -1,0 +1,59 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(tidyverse)
+library(here)
+library(SingleCellExperiment)
+library(cowplot)
+library(knitr)
+library(sctransform)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+```{r}
+macrophage2 <- readRDS(here('explore/RDS/macrophage_mindong.RDS'))
+```
+
+```{r}
+head(macrophage2)
+```
+
+```{r}
+DimPlot(macrophage2, group.by = "seurat_clusters", label = T, repel = Tz) + NoLegend()
+```
+
+
+```{r}
+macrophage@meta.data$cell_type_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(10, 6, 15, 8), "Monocyte", "NA")
+macrophage@meta.data$cell_type_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(24, 21, 16, 0, 14, 19, 7, 18, 4, 25, 23), "M1 macrophage", macrophage@meta.data$cell_type_submain2)
+macrophage@meta.data$cell_type_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(
+20, 5, 3, 11, 1, 17, 2, 12, 13), "M2 macrophage", macrophage@meta.data$cell_type_submain2)
+
+```
+
+```{r}
+DimPlot(macrophage, group.by = "cell_type_submain2", label = T)
+DimPlot(macrophage, group.by = "cell_type_submain", label = T)
+DimPlot(macrophage, group.by = "Diagnosis", label = T)
+DimPlot(macrophage, group.by = "new_submain2", label = T)
+
+```
+
+```{r}
+covid <- subset(macrophage, subset = Diagnosis == "COVID")
+DimPlot(covid, group.by = "Diagnosis", label = T)
+```
+
+```{r}
+FeaturePlot(macrophage, features = c("CCL2", "CCL7"))
+FeaturePlot(macrophage, features = c("IL6"))
+
+```
+
+

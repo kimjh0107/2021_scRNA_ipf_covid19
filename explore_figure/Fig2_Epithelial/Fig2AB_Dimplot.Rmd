@@ -1,0 +1,47 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+```
+
+```{r}
+Epithelial_test <- readRDS(here("explore/RDS/06_Epithelial_celltype.RDS"))
+```
+
+```{r}
+DimPlot(Epithelial_test, group.by = "cell_type_submain", label =TRUE)
+ggsave(here('explore_figure/Fig2/Figure2A.pdf')) 
+```
+
+```{r}
+DimPlot(Epithelial_test, group.by = "Diagnosis", label =TRUE)
+ggsave(here('explore_figure/Fig2/Figure2B.pdf')) 
+
+```
+
+```{r}
+control <- subset(Epithelial_test, subset = Diagnosis == "Control")
+covid <- subset(Epithelial_test, subset = Diagnosis == "COVID")
+ipf <- subset(Epithelial_test, subset = Diagnosis == "IPF")
+```
+
+```{r}
+DimPlot(control, group.by = "Diagnosis", label =TRUE, cols = c("skyblue"))
+ggsave(here('explore_figure/Fig2/Figure2B_control.pdf')) 
+
+DimPlot(covid, group.by = "Diagnosis", label =TRUE, cols = c("#ED8141"))
+ggsave(here('explore_figure/Fig2/Figure2B_covid.pdf')) 
+
+DimPlot(ipf, group.by = "Diagnosis", label =TRUE, cols = c("purple"))
+ggsave(here('explore_figure/Fig2/Figure2B_ipf.pdf')) 
+
+
+```
+
+
+

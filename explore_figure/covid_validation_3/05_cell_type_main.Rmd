@@ -1,0 +1,91 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+
+library(BiocManager)
+library(sctransform)
+library(glmGamPoi)
+library(Matrix)
+```
+
+```{r}
+refquery <- readRDS(here("explore_figure/covid_validation_3/RDS/04_integration.RDS"))
+```
+
+```{r}
+head(refquery)
+```
+
+```{r}
+unique(refquery$Diagnosis)
+table(is.na(refquery$Diagnosis))
+DimPlot(refquery, group.by = "integrated_snn_res.0.8", label = T, repel = T) + NoLegend()
+DimPlot(refquery, group.by = "Diagnosis", label = T, repel = T) 
+DimPlot(refquery, group.by = "integrated_snn_res.0.8", label = T, repel = T, split.by = "Diagnosis") + NoLegend()
+
+```
+
+```{r}
+control <- subset(refquery, subset = Diagnosis == "Control")
+control_b <- subset(refquery, subset = Diagnosis == "Control B")
+ipf <- subset(refquery, subset = Diagnosis == "IPF")
+covid <- subset(refquery, subset = Diagnosis == "COVID")
+covid_severe <- subset(refquery, subset = Diagnosis == "COVID severe")
+covid_moderate <- subset(refquery, subset = Diagnosis == "COVID moderate")
+
+DimPlot(control, group.by = "Diagnosis", label = T, repel = T) 
+DimPlot(control_b, group.by = "Diagnosis", label = T, repel = T) 
+DimPlot(ipf, group.by = "Diagnosis", label = T, repel = T)
+DimPlot(covid, group.by = "Diagnosis", label = T, repel = T) 
+DimPlot(covid_severe, group.by = "Diagnosis", label = T, repel = T) 
+DimPlot(covid_moderate, group.by = "Diagnosis", label = T, repel = T) 
+
+```
+
+```{r}
+# make markers 
+DefaultAssay(refquery) <- "RNA"
+
+features_epithelial <- c("EPCAM")
+features_endothelial <- c("PECAM1")
+features_immune <- c("PTPRC")
+features_mesenchymal_1 <- c("ACTA2", "MYH11", "PDGFRB")
+features_mesenchymal_2 <- c("LUM", "PDGFRA", "ACTA2", "MYLK")
+
+# check out expression 
+DimPlot(refquery, group.by = "integrated_snn_res.0.8", label = T, repel = T) + NoLegend()
+FeaturePlot(refquery, features = features_epithelial)
+FeaturePlot(refquery, features = features_endothelial)
+FeaturePlot(refquery, features = features_immune)
+FeaturePlot(refquery, features = features_mesenchymal_1)
+FeaturePlot(refquery, features = features_mesenchymal_2)
+
+```
+
+```{r}
+# population annotation
+refquery@meta.data$cell_type_main <- ifelse(refquery$integrated_snn_res.0.8 %in% c(29,1,20,32,14,8,34,31,19,7), 'Epithelial cells', 'NA')
+refquery@meta.data$cell_type_main <- ifelse(refquery$integrated_snn_res.0.8 %in% c(18,23,17,27), 'Endothelial cells', refquery$cell_type_main)
+refquery@meta.data$cell_type_main <- ifelse(refquery$integrated_snn_res.0.8 %in% c(21, 25, 15, 12, 6, 13, 24, 28, 33, 9, 2,3,4,5,36,26,22,10,11,0), 'Immune cells', refquery$cell_type_main)
+refquery@meta.data$cell_type_main <- ifelse(refquery$integrated_snn_res.0.8 %in% c(30, 16, 35), 'Mesenchymal cells', refquery$cell_type_main)
+
+#saveRDS(refquery, file = "05_Integrate_df_annotation.RDS")
+```
+
+```{r}
+DimPlot(refquery, group.by = "cell_type_main", label = T)
+```
+
+```{r}
+saveRDS(refquery, file = "05_Integrate_cell_type_main.RDS")
+```
+
+

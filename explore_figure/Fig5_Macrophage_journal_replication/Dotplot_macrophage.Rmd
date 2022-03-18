@@ -1,0 +1,279 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Signac)
+library(Seurat)
+library(SeuratWrappers)
+library(monocle3)
+library(Matrix)
+library(ggplot2)
+library(patchwork)
+library(here)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+control <- subset(refquery, subset = Diagnosis == "Control")
+covid <- subset(refquery, subset = Diagnosis == "COVID")
+ipf <- subset(refquery, subset = Diagnosis == "IPF")
+rm(refquery)
+
+DefaultAssay(control) <- "RNA"
+DefaultAssay(covid) <- "RNA"
+DefaultAssay(ipf) <- "RNA"
+```
+
+```{r}
+features <- c(
+'FCN1',
+'IL1B',
+'FABP4',
+'INHBA',
+'SPP1',
+'MERTK'
+)
+```
+
+```{r}
+Idents(control) <- "cell_type_submain"
+Idents(covid) <- "cell_type_submain"
+Idents(ipf) <- "cell_type_submain"
+```
+
+```{r}
+DimPlot(control, group.by = "integrated_snn_res.0.8", label = TRUE) + NoLegend()
+DimPlot(control, group.by = "cell_type_main", label = TRUE) + NoLegend()
+DimPlot(control, group.by = "cell_type_submain", label = TRUE) + NoLegend()
+
+```
+
+# new annotation 
+immune@meta.data$cell_type_submain <- ifelse(immune@meta.data$integrated_snn_res.0.6 %in% c(13), "B Cells", immune@meta.data$cell_type_submain)
+```{r}
+control@meta.data$cell_type_submain <- ifelse(control@meta.data$seurat_clusters %in% c(25,16, 15, 20), "Endothelial Cells", control@meta.data$cell_type_submain)
+```
+
+```{r}
+unique(control$cell_type_submain)
+```
+
+
+```{r}
+# control
+DotPlot(control, features = features) + theme_classic() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        axis.text.y = element_text(vjust = 1, hjust = 1, size =8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 12, face = 'bold'), legend.position = 'right') +
+        scale_y_discrete(limits=c("Neutrophil",
+"NK Cell",
+"CD8 Tcell",
+"CD4 Tcell",
+"B Cell",
+"Mast Cell",
+"Plasma Cell",
+"pDCs",
+"mDCs",
+"Monocyte",
+"M1 Macrophage",
+"M2 Macrophage",
+"Endothelial Cells",
+"AT2",
+"AT1",
+"Club Cell",
+"Gobelt Cel",
+"Basal Cell",
+"Ciliated Cell",
+"Mesothelial Cell",
+"Neutrophil",
+"Adventitial Fibroblasts",
+"Myofibroblasts",
+"Pathological Fibroblasts",
+"Alveolar Fibroblasts",
+"Lipo Fibroblasts",
+"Airway smooth muscle",
+"Vascular smooth muscle"))
+# covid 
+DotPlot(covid, features = features) + theme_classic() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        axis.text.y = element_text(vjust = 1, hjust = 1, size =8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 12, face = 'bold'), legend.position = 'right') +
+        scale_y_discrete(limits=c("Neutrophil",
+"NK Cell",
+"CD8 Tcell",
+"CD4 Tcell",
+"B Cell",
+"Mast Cell",
+"Plasma Cell",
+"pDCs",
+"mDCs",
+"Monocyte",
+"M1 Macrophage",
+"M2 Macrophage",
+"Endothelial Cells",
+"AT2",
+"AT1",
+"Club Cell",
+"Gobelt Cel",
+"Basal Cell",
+"Ciliated Cell",
+"Mesothelial Cell",
+"Neutrophil",
+"Adventitial Fibroblasts",
+"Myofibroblasts",
+"Pathological Fibroblasts",
+"Alveolar Fibroblasts",
+"Lipo Fibroblasts",
+"Airway smooth muscle",
+"Vascular smooth muscle"))
+# ipf 
+DotPlot(ipf, features = features) + theme_classic() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        axis.text.y = element_text(vjust = 1, hjust = 1, size =8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 12, face = 'bold'), legend.position = 'right') +
+        scale_y_discrete(limits=c("Neutrophil",
+"NK Cell",
+"CD8 Tcell",
+"CD4 Tcell",
+"B Cell",
+"Mast Cell",
+"Plasma Cell",
+"pDCs",
+"mDCs",
+"Monocyte",
+"M1 Macrophage",
+"M2 Macrophage",
+"Endothelial Cells",
+"AT2",
+"AT1",
+"Club Cell",
+"Gobelt Cel",
+"Basal Cell",
+"Ciliated Cell",
+"Mesothelial Cell",
+"Neutrophil",
+"Adventitial Fibroblasts",
+"Myofibroblasts",
+"Pathological Fibroblasts",
+"Alveolar Fibroblasts",
+"Lipo Fibroblasts",
+"Airway smooth muscle",
+"Vascular smooth muscle"))
+```
+
+
+```{r}
+genes_list <- c(
+"FCN1",
+"IL1B",
+"FABP4",
+"INHBA",
+"SPP1",
+"MERTK"
+)
+
+pathway_name <- c(
+"Control",
+"Control",
+"Control",
+"Control",
+"Control",
+"Control"
+)
+
+
+genes <- data.frame(genes_list, pathway_name)
+
+```
+
+
+```{r}
+DotPlot(control, features = genes$genes_list, dot.scale = 5, assay = "RNA") +
+  facet_grid(~genes$pathway_name,
+             scales = "free",
+             space = "free") + 
+  guides(color = guide_colorbar(title = 'Average Expression')) + 
+  theme_classic() + 
+  RotatedAxis() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        axis.text.y = element_text(vjust = 1, hjust = 1, size =8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 12, face = 'bold'), legend.position = 'right') + NoLegend()+
+        scale_y_discrete(limits=c("Neutrophil","NK Cell","CD8 Tcell","CD4 Tcell","B Cell","Mast Cell","Plasma Cell","pDCs","mDCs","Monocyte","M1 Macrophage","M2 Macrophage","Endothelial Cells","AT2","AT1","Club Cell","Gobelt Cel","Basal Cell","Ciliated Cell","Mesothelial Cell","Neutrophil","Adventitial Fibroblasts","Myofibroblasts","Pathological Fibroblasts","Alveolar Fibroblasts","Lipo Fibroblasts","Airway smooth muscle","Vascular smooth muscle"))
+
+```
+
+```{r}
+genes_list <- c(
+"FCN1",
+"IL1B",
+"FABP4",
+"INHBA",
+"SPP1",
+"MERTK"
+)
+
+pathway_name <- c(
+"Covid",
+"Covid",
+"Covid",
+"Covid",
+"Covid",
+"Covid"
+)
+
+
+genes <- data.frame(genes_list, pathway_name)
+```
+```{r}
+DotPlot(covid, features = genes$genes_list, dot.scale = 5, assay = "RNA") +
+  facet_grid(~genes$pathway_name,
+             scales = "free",
+             space = "free") + 
+  guides(color = guide_colorbar(title = 'Average Expression')) + 
+  theme_classic() + 
+  RotatedAxis() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        axis.text.y = element_text(vjust = 1, hjust = 1, size =8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 12, face = 'bold'), legend.position = 'right') + NoLegend()+
+        scale_y_discrete(limits=c("Neutrophil","NK Cell","CD8 Tcell","CD4 Tcell","B Cell","Mast Cell","Plasma Cell","pDCs","mDCs","Monocyte","M1 Macrophage","M2 Macrophage","Endothelial Cells","AT2","AT1","Club Cell","Gobelt Cel","Basal Cell","Ciliated Cell","Mesothelial Cell","Neutrophil","Adventitial Fibroblasts","Myofibroblasts","Pathological Fibroblasts","Alveolar Fibroblasts","Lipo Fibroblasts","Airway smooth muscle","Vascular smooth muscle"))
+
+```
+
+```{r}
+genes_list <- c(
+"FCN1",
+"IL1B",
+"FABP4",
+"INHBA",
+"SPP1",
+"MERTK"
+)
+
+pathway_name <- c(
+"IPF",
+"IPF",
+"IPF",
+"IPF",
+"IPF",
+"IPF"
+)
+
+
+genes <- data.frame(genes_list, pathway_name)
+```
+```{r}
+DotPlot(ipf, features = genes$genes_list, dot.scale = 5, assay = "RNA") +
+  facet_grid(~genes$pathway_name,
+             scales = "free",
+             space = "free") + 
+  guides(color = guide_colorbar(title = 'Average Expression')) + 
+  theme_classic() + 
+  RotatedAxis() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        axis.text.y = element_text(vjust = 1, hjust = 1, size =8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 12, face = 'bold'), legend.position = 'right') +
+        scale_y_discrete(limits=c("Neutrophil","NK Cell","CD8 Tcell","CD4 Tcell","B Cell","Mast Cell","Plasma Cell","pDCs","mDCs","Monocyte","M1 Macrophage","M2 Macrophage","Endothelial Cells","AT2","AT1","Club Cell","Gobelt Cel","Basal Cell","Ciliated Cell","Mesothelial Cell","Neutrophil","Adventitial Fibroblasts","Myofibroblasts","Pathological Fibroblasts","Alveolar Fibroblasts","Lipo Fibroblasts","Airway smooth muscle","Vascular smooth muscle"))
+
+```

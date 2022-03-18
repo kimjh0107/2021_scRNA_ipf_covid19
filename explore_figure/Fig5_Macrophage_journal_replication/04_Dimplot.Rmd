@@ -1,0 +1,35 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(tidyverse)
+library(here)
+library(SingleCellExperiment)
+```
+
+```{r}
+macrophage <- readRDS(here('explore/RDS/macrophage_journal_replicaton2.RDS'))
+```
+
+```{r}
+DimPlot(macrophage, group.by = "new_submain", label = T, repel = T)
+ggsave(here("explore_figure/Macrophage_journal_replication/Dimplot_groupby_newsubmain.pdf"))
+
+DimPlot(macrophage, group.by = "Diagnosis", label = T, repel = T)
+ggsave(here("explore_figure/Macrophage_journal_replication/Dimplot_groupby_diagnosis.pdf"))
+
+DimPlot(macrophage, group.by = "new_submain", label = F, repel = T, split.by = "Diagnosis")
+
+```
+
+ 
+
+
+
+
+
+
+

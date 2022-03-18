@@ -1,0 +1,50 @@
+---
+title: "Untitled"
+output: html_document
+---
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/df.RDS'))
+```
+
+```{r}
+Neutrophil <- subset(refquery, subset = cell_type_submain %in% c("Neutrophil"))
+```
+
+```{r}
+Neutrophil <- ScaleData(object = Neutrophil)
+Neutrophil <- RunPCA(object = Neutrophil)
+Neutrophil <- FindNeighbors(Neutrophil, dims = 1:50)
+Neutrophil <- FindClusters(Neutrophil, resolution = 0.8)
+Neutrophil <- RunUMAP(object = Neutrophil, dims = 1:30)
+```
+
+```{r}
+DimPlot(Neutrophil, group.by = "cell_type_submain", label = T)
+DimPlot(Neutrophil, group.by = "Diagnosis", label = T)
+```
+
+```{r}
+control <- subset(Neutrophil, subset = Diagnosis == "Control")
+covid <- subset(Neutrophil, subset = Diagnosis == "COVID")
+ipf <- subset(Neutrophil, subset = Diagnosis == "IPF")
+
+DimPlot(control, group.by = "Diagnosis", label = T)
+DimPlot(covid, group.by = "Diagnosis", label = T)
+DimPlot(ipf, group.by = "Diagnosis", label = T)
+```
+
+```{r}
+saveRDS(Neutrophil, file = "Neutrophil.RDS")
+
+```
+
+
+
+
+

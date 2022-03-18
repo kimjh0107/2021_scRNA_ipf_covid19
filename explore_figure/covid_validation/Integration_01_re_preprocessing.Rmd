@@ -1,0 +1,41 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Matrix)
+library(rhdf5)
+library(tidyverse)
+library(glue)
+library(here)
+library(hdf5r)
+library(Seurat)
+```
+
+```{r}
+covid_val <- readRDS(here('explore/RDS/COVID_validate_h5_to_SeuratObject_merge.RDS'))
+ipf_val <- readRDS(here('explore/RDS/01_IPF_SeuratObject.RDS.RDS'))
+```
+
+
+```{r}
+ipf_val <- PercentageFeatureSet(ipf_val, pattern = "^MT-", col.name = "percent.mt")
+ipf_val <- subset(ipf_val, subset = nFeature_RNA > 1000 & percent.mt < 25)
+ipf_val <- SCTransform(ipf_val, method = "glmGamPoi", vars.to.regress = "percent.mt", verbose = FALSE)
+ipf_val <- RunPCA(ipf_val)
+ipf_val <- RunUMAP(ipf_val, dims = 1:30, verbose = FALSE, return.model=TRUE)
+ipf_val <- FindNeighbors(ipf_val, dims = 1:30, verbose = FALSE)
+ipf_val <- FindClusters(ipf_val, verbose = FALSE)
+
+# Covid
+covid_val <- PercentageFeatureSet(object = covid_val, pattern = "^MT-", col.name = "percent.mt")
+covid_val <- subset(covid_val, subset = nFeature_RNA > 1000 & percent.mt < 25)
+covid_val <- SCTransform(covid_val, method = "glmGamPoi", vars.to.regress = "percent.mt", verbose = FALSE)
+```
+
+```{r}
+saveRDS(ipf_val, file = "ipf_val_preprocess.RDS")
+saveRDS(covid_val, file = "covid_val_preprocess.RDS")
+```
+

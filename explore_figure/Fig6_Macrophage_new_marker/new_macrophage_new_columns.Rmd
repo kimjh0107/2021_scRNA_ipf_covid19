@@ -1,0 +1,52 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+```
+
+```{r}
+macrophage <- readRDS(here('explore/RDS/macrophage_journal_replicaton2.RDS'))
+```
+
+```{r}
+DimPlot(macrophage, group.by = "cell_type_submain", label = T)
+DimPlot(macrophage, group.by = "seurat_clusters", label = T)
+DimPlot(macrophage, group.by = "Diagnosis", label = T)
+DimPlot(macrophage, group.by = "new_submain", label = T)
+
+```
+
+
+```{r}
+DefaultAssay(macrophage) <- "RNA"
+FeaturePlot(macrophage, features = c("CD14", "FCGR3A", "MRC1", "SIGLEC1"))
+```
+
+
+```{r}
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(10, 6, 15, 8), "Monocyte", "NA")
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(11, 17, 2, 1, 12, 20, 5, 3, 23, 0, 12, 16, 19, 13), "Alveolar Macrophage", macrophage@meta.data$new_submain2)
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(4, 7, 9, 14,  18, 21, 22, 24, 25), "Interstitial Macrophage", macrophage@meta.data$new_submain2)
+
+DimPlot(macrophage, group.by = "new_submain2", label = T)
+DimPlot(macrophage, group.by = "new_submain", label = T)
+DimPlot(macrophage, group.by = "Diagnosis", label = T)
+
+```
+
+```{r}
+Idents(macrophage) <- "seurat_clusters"
+VlnPlot(macrophage, features = c("CD14", "FCGR3A", "MRC1", "SIGLEC1"), group.by = "seurat_clusters", sort = TRUE, pt.size = 0, split.by = "Diagnosis")
+```
+#VlnPlot(pathway, features = features_TGF, group.by = "cell_type_submain", sort = TRUE, pt.size = 0, split.by = "Diagnosis")
+
+
+```{r}
+#saveRDS(macrophage, file = "macrophage_new_marker.RDS" )
+```
+

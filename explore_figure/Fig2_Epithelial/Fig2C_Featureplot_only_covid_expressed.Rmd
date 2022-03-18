@@ -1,0 +1,96 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r}
+library(Seurat)
+library(here)
+library(tidyverse)
+```
+
+```{r}
+Epithelial_test <- readRDS(here("explore/RDS/06_Epithelial_celltype.RDS"))
+
+control <- subset(Epithelial_test, subset = Diagnosis == "Control")
+covid <- subset(Epithelial_test, subset = Diagnosis == "COVID")
+ipf <- subset(Epithelial_test, subset = Diagnosis == "IPF")
+
+```
+
+```{r}
+FeaturePlot(Epithelial_test, features = c("S100A8", "S100A9","CCL4L2", "G0S2", "LYZ", "CXCL8", "BCL2A1"), split.by = "Diagnosis", cols = c("lightgrey", "red"))
+```
+
+```{r}
+FeaturePlot(Epithelial_test, features = c("S100A8", "S100A9","CCL4L2", "G0S2", "LYZ", "CXCL8", "BCL2A1"), split.by = "Diagnosis") 
+```
+
+
+```{r}
+DefaultAssay(control) <- "RNA"
+DefaultAssay(covid) <- "RNA"
+DefaultAssay(ipf) <- "RNA"
+
+# S100A8
+FeaturePlot(control, features = c("S100A8"))
+FeaturePlot(covid, features = c("S100A8"))
+FeaturePlot(ipf, features = c("S100A8"))
+```
+
+```{r}
+# S100A9
+FeaturePlot(control, features = c("S100A9"))
+FeaturePlot(covid, features = c("S100A9"))
+FeaturePlot(ipf, features = c("S100A9"))
+
+```
+
+```{r}
+# CCL4L2
+FeaturePlot(control, features = c("CCL4L2"))
+FeaturePlot(covid, features = c("CCL4L2"))
+FeaturePlot(ipf, features = c("CCL4L2"))
+```
+
+```{r}
+# G0S2
+FeaturePlot(control, features = c("G0S2"))
+FeaturePlot(covid, features = c("G0S2"))
+FeaturePlot(ipf, features = c("G0S2"))
+
+```
+
+```{r}
+# LYZ
+FeaturePlot(control, features = c("LYZ"))
+FeaturePlot(covid, features = c("LYZ"))
+FeaturePlot(ipf, features = c("LYZ"))
+```
+
+```{r}
+# CXCL8
+FeaturePlot(control, features = c("CXCL8"))
+FeaturePlot(covid, features = c("CXCL8"))
+FeaturePlot(ipf, features = c("CXCL8"))
+```
+
+```{r}
+# BCL2A1
+FeaturePlot(control, features = c("BCL2A1"))
+FeaturePlot(covid, features = c("BCL2A1"))
+FeaturePlot(ipf, features = c("BCL2A1"))
+```
+
+
+
+
+```{r}
+FeaturePlot(Epithelial_test, features = c("LYZ"), split.by = "Diagnosis")
+
+control <- subset(Epithelial_test, subset = Diagnosis == "Control")
+FeaturePlot(control, features = c("LYZ"), split.by = "Diagnosis")
+
+```
+
+

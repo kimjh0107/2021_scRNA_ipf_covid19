@@ -1,0 +1,36 @@
+---
+title: "Untitled"
+output: html_document
+---
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/Tcell.RDS'))
+```
+
+```{r}
+DimPlot(refquery, group.by = "cell_type_submain", label = T)
+DimPlot(refquery, group.by = "Diagnosis", label = T)
+```
+
+```{r}
+control <- subset(refquery, subset = Diagnosis == "Control")
+covid <- subset(refquery, subset = Diagnosis == "COVID")
+ipf <- subset(refquery, subset = Diagnosis == "IPF")
+
+DimPlot(control, group.by = "Diagnosis", label = T)
+DimPlot(covid, group.by = "Diagnosis", label = T)
+DimPlot(ipf, group.by = "Diagnosis", label = T)
+
+```
+
+
+
+
+
+
+

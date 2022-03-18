@@ -1,0 +1,30 @@
+library(Seurat)
+library(here)
+library(tidyverse)
+
+refquery <- readRDS(here('explore/RDS/05_New_Integrate_df.RDS'))
+
+# Immune cells 
+refquery <- subset(refquery, cell_type_main == 'Immune cells')
+refquery <- ScaleData(object = refquery)
+refquery <- RunPCA(object = refquery)
+refquery <- FindNeighbors(refquery, dims = 1:20)
+refquery <- FindClusters(refquery, resolution = 0.6)
+refquery <- RunUMAP(object = refquery, dims = 1:20)
+
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(15), "Plasma Cell", "NA")
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(13), "B Cell", refquery@meta.data$cell_type_submain)
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(19, 4, 18), "CD4 Tcell", refquery@meta.data$cell_type_submain)
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(8), "CD8 Tcell", refquery@meta.data$cell_type_submain)
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(10), "Neutrophil", refquery@meta.data$cell_type_submain)
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(5), "NK Cell", refquery@meta.data$cell_type_submain)
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(11), "Mast Cell", refquery@meta.data$cell_type_submain)
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(0, 3, 14, 21, 2, 6, 9, 17, 12), "M2 Macrophage", refquery@meta.data$cell_type_submain)
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(16, 7 ), "M1 Macrophage", refquery@meta.data$cell_type_submain)
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(22), "pDCs", refquery@meta.data$cell_type_submain)
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(7), "mDCs", refquery@meta.data$cell_type_submain)
+refquery@meta.data$cell_type_submain <- ifelse(refquery@meta.data$integrated_snn_res.0.6 %in% c(1, 20), "Monocyte", refquery@meta.data$cell_type_submain)
+
+saveRDS(refquery, file = "06_Immune_celltype.RDS" )
+celltype <- refquery@meta.data %>% select("cellbarcodes", "cell_type_submain")
+write.csv(celltype, "New_Immune_celltype")

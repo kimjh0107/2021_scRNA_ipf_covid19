@@ -1,0 +1,44 @@
+---
+title: "Untitled"
+output: html_document
+---
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/df.RDS'))
+```
+
+```{r}
+DimPlot(refquery, group.by = "cell_type_submain", label = T) + NoLegend()
+```
+
+```{r}
+Tcell <- subset(refquery, subset = cell_type_submain %in% c("NK Cell", "CD8 Tcell", "CD4 Tcell"))
+```
+
+```{r}
+Tcell <- ScaleData(object = Tcell)
+Tcell <- RunPCA(object = Tcell)
+Tcell <- FindNeighbors(Tcell, dims = 1:50)
+Tcell <- FindClusters(Tcell, resolution = 0.8)
+Tcell <- RunUMAP(object = Tcell, dims = 1:30)
+```
+
+
+```{r}
+DimPlot(Tcell, group.by = "cell_type_submain", label = T)
+```
+
+```{r}
+saveRDS(Tcell, file = "Tcell.RDS")
+```
+
+
+
+
+
+

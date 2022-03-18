@@ -1,0 +1,133 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+```{r}
+macrophage <- readRDS(here('explore_figure/validate/macrophage_subset_final.RDS'))
+```
+
+```{r}
+control <- subset(macrophage, subset = Diagnosis == "Control")
+control_b <- subset(macrophage, subset = Diagnosis == "Control B")
+covid <- subset(macrophage, subset = Diagnosis == "COVID")
+covid_severe <- subset(macrophage, subset = Diagnosis == "COVID severe")
+covid_moderate <- subset(macrophage, subset = Diagnosis == "COVID moderate")
+ipf <- subset(macrophage, subset = Diagnosis == "IPF")
+```
+
+```{r}
+DimPlot(macrophage, group.by = "seurat_clusters", label = T, repel = T) + NoLegend()
+DimPlot(control, group.by = "Diagnosis", label = T)
+DimPlot(control_b, group.by = "Diagnosis", label = T)
+DimPlot(covid, group.by = "Diagnosis", label = T)
+DimPlot(covid_severe, group.by = "Diagnosis", label = T)
+DimPlot(covid_moderate, group.by = "Diagnosis", label = T)
+DimPlot(ipf, group.by = "Diagnosis", label = T)
+```
+
+```{r}
+DimPlot(macrophage, group.by = "seurat_clusters", label = T, repel = T)
+DimPlot(control_b, group.by = "seurat_clusters", split.by = "Diagnosis", label = T, repel = T) 
+DimPlot(covid_moderate, group.by = "seurat_clusters", split.by = "Diagnosis", label = T, repel = T) 
+DimPlot(covid_severe, group.by = "seurat_clusters", split.by = "Diagnosis", label = T, repel = T) 
+DimPlot(covid, group.by = "seurat_clusters", split.by = "Diagnosis", label = T, repel = T) 
+DimPlot(ipf, group.by = "seurat_clusters", split.by = "Diagnosis", label = T, repel = T) 
+
+```
+
+
+```{r}
+DimPlot(macrophage, group.by = "seurat_clusters", label = T)
+
+DefaultAssay(macrophage) <- "RNA"
+
+FeaturePlot(macrophage, features = c("FABP4"))
+FeaturePlot(macrophage, features = c("SPP1"))
+FeaturePlot(macrophage, features = c("FCN1"))
+
+
+FeaturePlot(macrophage, features = c("CD14"))
+FeaturePlot(macrophage, features = c("FCGR3A")) # CD16
+FeaturePlot(macrophage, features = c("MRC1")) # CD206
+FeaturePlot(macrophage, features = c("SIGLEC1")) # C169
+
+
+# M1 
+FeaturePlot(macrophage, features = c("IL12A"))
+FeaturePlot(macrophage, features = c("TNF"))  # TNF-a
+FeaturePlot(macrophage, features = c("IL6"))
+FeaturePlot(macrophage, features = c("IL12B")) # IL23 
+FeaturePlot(macrophage, features = c("CXCL8"))
+FeaturePlot(macrophage, features = c("CXCL9"))
+FeaturePlot(macrophage, features = c("CXCL10"))
+FeaturePlot(macrophage, features = c("CXCL16"))
+FeaturePlot(macrophage, features = c("CCL2"))
+FeaturePlot(macrophage, features = c("CCL3"))
+FeaturePlot(macrophage, features = c("CCL5"))
+# M2 
+FeaturePlot(macrophage, features = c("CXCR1"))
+FeaturePlot(macrophage, features = c("CXCR2"))
+FeaturePlot(macrophage, features = c("CCL17"))
+FeaturePlot(macrophage, features = c("CCL18"))
+FeaturePlot(macrophage, features = c("CCL22"))
+FeaturePlot(macrophage, features = c("CCL24"))
+FeaturePlot(macrophage, features = c("FCER2")) # CD23
+FeaturePlot(macrophage, features = c("CD163"))
+
+```
+
+
+```{r}
+macrophage <- subset(macrophage, subset = seurat_clusters != 32)
+macrophage <- subset(macrophage, subset = seurat_clusters != 33)
+```
+
+```{r}
+# FABP4 & SPP1 & FCN1 
+macrophage@meta.data$new_submain <- ifelse(macrophage@meta.data$seurat_clusters %in% c(11, 3, 1, 13, 4, 21 , 28, 2, 26, 10, 20), "FABP4+ Macrophage", "NA")
+macrophage@meta.data$new_submain <- ifelse(macrophage@meta.data$seurat_clusters %in% c(9, 17, 22, 12, 16, 8, 15, 31, 5, 24), "FCN1+ Monocyte", macrophage@meta.data$new_submain)
+macrophage@meta.data$new_submain <- ifelse(macrophage@meta.data$seurat_clusters %in% c(30, 0,  19, 6, 18, 25, 27, 7), "SPP1+ Macrophage", macrophage@meta.data$new_submain)
+macrophage@meta.data$new_submain <- ifelse(macrophage@meta.data$seurat_clusters %in% c(14, 23, 29), "Mixed Macrophage", macrophage@meta.data$new_submain)
+
+# Alveolar & Interstitial 
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(17, 16, 22, 12 ), "Monocyte", "NA")
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(13, 1, 4, 20, 3, 21, 28, 11, 2, 29, 23, 26, 16, 24, 30, 19, 0, 6, 18, 25, 14, 9, 32, 8,5, 15, 7, 10, 27), "Alveolar Macrophages", macrophage@meta.data$new_submain2)
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(9), "Interstitial Macrophages", macrophage@meta.data$new_submain2)
+macrophage@meta.data$new_submain2 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(14, 31), "Unknown", macrophage@meta.data$new_submain2)
+
+# M1 & M2 
+macrophage@meta.data$new_submain3 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(17, 16, 22, 12 ), "Monocyte", "NA")
+macrophage@meta.data$new_submain3 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(31, 15, 8, 5, 7, 27, 25, 9, 32, 18, 6, 0, 30, 24, 23, 29, 26, 5,  19 ), "M1 Macrophages", macrophage@meta.data$new_submain3)
+macrophage@meta.data$new_submain3 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(11, 3, 28, 21, 1, 4, 13, 20 , 2, 10), "M2 Macrophages", macrophage@meta.data$new_submain3)
+macrophage@meta.data$new_submain3 <- ifelse(macrophage@meta.data$seurat_clusters %in% c(14), "Unknown", macrophage@meta.data$new_submain3)
+
+DimPlot(macrophage, group.by = "seurat_clusters", label = T, repel = T)
+
+DimPlot(macrophage, group.by = "new_submain", label = T, repel = T)
+DimPlot(macrophage, group.by = "new_submain2", label = T, repel = T)
+DimPlot(macrophage, group.by = "new_submain3", label = T, repel = T)
+DimPlot(covid, group.by = "seurat_clusters", label = T, repel = T)
+
+DimPlot(macrophage, group.by = "Diagnosis", label = T)
+
+```
+
+```{r}
+saveRDS(macrophage, file = "5_macrophage_new_columns.RDS")
+```
+
+
+
+

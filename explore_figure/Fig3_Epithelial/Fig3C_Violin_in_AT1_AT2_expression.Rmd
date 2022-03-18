@@ -1,0 +1,37 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(DoMultiBarHeatmap)
+```
+
+```{r}
+Epithelial_test <- readRDS(here("explore/RDS/06_Epithelial_celltype.RDS"))
+AT <- subset(Epithelial_test, subset = cell_type_submain %in% c("AT1", "AT2"))
+AT1 <- subset(AT, subset = cell_type_submain == "AT1")
+AT2 <- subset(AT, subset = cell_type_submain == "AT2")
+```
+
+# ETV5 = AT2
+# CAV1 = AT1 
+
+```{r}
+DefaultAssay(AT1) <- "RNA"
+DefaultAssay(Epithelial_test) <- "RNA"
+VlnPlot(AT1, features = c("CAV1"), group.by = 'Diagnosis', sort = TRUE, pt.size = 0.01, split.by = "Diagnosis")
+VlnPlot(AT1, features = c("CAV1"), group.by = 'Diagnosis', sort = TRUE, pt.size = 0, split.by = "Diagnosis") 
+
+DefaultAssay(AT2) <- "RNA"
+VlnPlot(AT2, features = c("ETV5"), group.by = 'Diagnosis', sort = TRUE, pt.size = 0.01, split.by = "Diagnosis")
+VlnPlot(AT2, features = c("ETV5"), group.by = 'Diagnosis', sort = TRUE, pt.size = 0.00, split.by = "Diagnosis")
+
+
+```
+
+
+

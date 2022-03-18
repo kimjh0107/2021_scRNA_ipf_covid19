@@ -1,0 +1,82 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(tidyverse)
+library(here)
+library(SingleCellExperiment)
+library(cowplot)
+library(knitr)
+library(sctransform)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+```{r}
+tcell <- readRDS(here('explore/RDS/Tcell3.RDS'))
+```
+
+```{r}
+tcell$row <- substr(rownames(tcell@meta.data), 1, 6) 
+```
+
+```{r}
+head(tcell)
+```
+
+```{r}
+unique(tcell$row)
+```
+
+```{r}
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("F01157"), "HC1", "NA")
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("F01174"), "HC2", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("F01365"), "HC3", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("F01366"), "HC4", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("F01367"), "HC5", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("HD65_A", "HD65_C", "HD65_G", "HD65_T"), "HC6", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("HD66_A", "HD66_C", "HD66_G", "HD66_T"), "HC7", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("HD67_A", "HD67_C", "HD67_G", "HD67_T"), "HC8", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("HD68_A", "HD68_C", "HD68_G", "HD68_T"), "HC9", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("F00409"), "HC10", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("HD70_A", "HD70_C", "HD70_G", "HD70_T"), "HC11", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("F01394"), "HC12", tcell@meta.data$Diagnosis_tag)
+
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("F00431"), "I1", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("F01302"), "I2", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("F01303"), "I3", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("F01214"), "I4", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("F01172"), "I5", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("F01173"), "I6", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("F01379"), "I7", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("F01380"), "I8", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("ILD53_"), "I9", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("ILD59-"), "I10", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("ILD60-"), "I10", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("ILD61-"), "I11", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("ILD63_"), "I12", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("F01390"), "I13", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("F01391"), "I14", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("F01392"), "I15", tcell@meta.data$Diagnosis_tag)
+
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("obj1_A", "obj1_C", "obj1_G", "obj1_T"), "C1", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("obj2_A", "obj2_C", "obj2_G", "obj2_T"), "C2", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("obj3_A", "obj3_C", "obj3_G", "obj3_T"), "C3", tcell@meta.data$Diagnosis_tag)
+tcell@meta.data$Diagnosis_tag <- ifelse(tcell@meta.data$row %in% c("obj4_A", "obj4_C", "obj4_G", "obj4_T"), "C4", tcell@meta.data$Diagnosis_tag)
+
+
+```
+
+
+```{r}
+head(tcell)
+unique(tcell$Diagnosis_tag)
+
+saveRDS(tcell, file = "tcell4.RDS")
+
+```
+

@@ -1,0 +1,58 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(knitr)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+```{r}
+refquery <- readRDS(here("explore_figure/covid_validation_3/RDS/05_Integrate_cell_type_main.RDS"))
+```
+
+```{r}
+head(refquery)
+table(is.na(refquery$cellbarcodes))
+refquery$cellbarcodes <- rownames(refquery@meta.data)
+table(is.na(refquery$cellbarcodes))
+```
+```{r}
+DimPlot(refquery, group.by = "seurat_clusters", label = T)
+DimPlot(refquery, group.by = "cell_type_main", label = T)
+
+```
+
+```{r}
+# Immune cells 
+immune <- subset(refquery, cell_type_main == 'Immune cells')
+
+DefaultAssay(immune) <- "integrated"
+
+immune <- ScaleData(object = immune)
+#immune <- FindVariableFeatures(object = immune)
+immune <- RunPCA(object = immune)
+immune <- FindNeighbors(immune, dims = 1:20)
+immune <- FindClusters(immune, resolution = 0.6)
+immune <- RunUMAP(object = immune, dims = 1:20)
+```
+
+```{r}
+DimPlot(immune, group.by = "seurat_clusters",label = T)
+DimPlot(immune, group.by = "seurat_clusters",split.by = 'Diagnosis', label = T)
+
+```
+
+
+```{r}
+saveRDS(immune, file = "final_subset_immune.RDS")
+```
+
+

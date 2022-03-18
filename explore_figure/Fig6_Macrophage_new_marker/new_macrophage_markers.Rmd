@@ -1,0 +1,59 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+```
+
+```{r}
+metadata <- refquery@meta.data
+metadata
+```
+
+```{r}
+write_csv(metadata, "metadata.csv")
+```
+
+```{r}
+unique(refquery$cell_type_main)
+```
+
+```{r}
+Immune <- subset(refquery, subset = cell_type_main == "Immune cells")
+```
+
+```{r}
+saveRDS(Immune, file = "Immune.RDS")
+```
+
+```{r}
+macrophage <- readRDS(here('explore/RDS/macrophage_journal_replicaton3.RDS'))
+```
+
+
+alveolar_features = CD14 low, CD16, CD206, CD169
+interstitial macrophages = CD14+, CD16, CD206, CD169 low 
+
+Monocyte CD206 - , CD169 - 
+
+```{r}
+DefaultAssay(macrophage) <- "RNA"
+FeaturePlot(macrophage, features = c("FCGR3A", "MRC1", "SIGLEC1"))
+```
+
+
+```{r}
+FeaturePlot(macrophage, features = c("HLA-DOA", "HLA-DOB", "HLA-DR"))
+```
+
+
+
+

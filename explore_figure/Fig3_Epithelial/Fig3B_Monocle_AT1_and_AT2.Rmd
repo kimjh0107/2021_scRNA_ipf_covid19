@@ -1,0 +1,118 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Signac)
+library(Seurat)
+library(SeuratWrappers)
+library(monocle3)
+library(Matrix)
+library(ggplot2)
+library(patchwork)
+library(here)
+```
+
+```{r}
+refquery <- readRDS(here('explore/RDS/07_df.RDS'))
+
+AT <- subset(x = refquery, subset = cell_type_submain == "AT2" | cell_type_submain == "AT1")
+rm(refquery)
+# subclustering
+AT <- ScaleData(object = AT)
+AT <- RunPCA(object = AT)
+AT <- FindNeighbors(AT, dims = 1:30)
+AT <- FindClusters(AT, resolution = 0.6)
+AT <- RunUMAP(object = AT, dims = 1:30)
+```
+
+```{r}
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(6), "AT1_SC1", "NA")
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(7), "AT1_SC2", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(9), "AT1_SC3", AT@meta.data$new_submain)
+
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(10), "AT2_SC1", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(8), "AT2_SC2", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(5), "AT2_SC3", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(1), "AT2_SC4", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(2), "AT2_SC5", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(4), "AT2_SC6", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(3), "AT2_SC7", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(0), "AT2_SC8", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(11), "AT2_SC9", AT@meta.data$new_submain)
+AT@meta.data$new_submain <- ifelse(AT@meta.data$seurat_clusters %in% c(12), "AT2_SC10", AT@meta.data$new_submain)
+```
+
+```{r}
+AT1 <- subset(AT, subset = cell_type_submain == "AT1")
+AT2 <- subset(AT, subset = cell_type_submain == "AT2")
+```
+
+# Building tranjectories with monocle3 
+```{r}
+AT1.cds <- as.cell_data_set(AT1)
+AT1.cds <- cluster_cells(cds = AT1.cds, reduction_method = "UMAP")
+AT1.cds <- learn_graph(AT1.cds, use_partition = TRUE)
+
+AT2.cds <- as.cell_data_set(AT2)
+AT2.cds <- cluster_cells(cds = AT2.cds, reduction_method = "UMAP")
+AT2.cds <- learn_graph(AT2.cds, use_partition = TRUE)
+```
+
+```{r}
+root_AT1_subset <- subset(AT1, subset = new_submain == "AT1_SC1")
+root_AT2_subset <- subset(AT2, subset = new_submain == "AT2_SC1")
+
+root_AT1_subset <- root_AT1_subset@meta.data$X
+root_AT2_subset <- root_AT2_subset@meta.data$X
+```
+
+# order cells 
+```{r}
+AT1.cds <- order_cells(AT1.cds, reduction_method = "UMAP", root_cells = root_AT1_subset)
+AT2.cds <- order_cells(AT2.cds, reduction_method = "UMAP", root_cells = root_AT2_subset)
+```
+
+```{r}
+# AT1 
+plot_cells(
+  cds = AT1.cds, 
+  color_cells_by = "pseudotime",
+  show_trajectory_graph = TRUE
+)
+
+# AT2 
+plot_cells(
+  cds = AT2.cds, 
+  color_cells_by = "pseudotime",
+  show_trajectory_graph = TRUE
+)
+```
+
+```{r}
+AT1.cds <- AddMetaData(
+  object = AT,
+  metadata = AT1.cds@principal_graph_aux@listData$UMAP$pseudotime,
+  col.name = "AT1"
+)
+
+AT2.cds <- AddMetaData(
+  object = AT,
+  metadata = AT2.cds@principal_graph_aux@listData$UMAP$pseudotime,
+  col.name = "AT2"
+)
+```
+
+```{r}
+FeaturePlot(AT1.cds, c("AT1"), pt.size = 0.1) & scale_color_viridis_c()
+ggsave(here('explore_figure/Fig3/AT1_monocle.pdf'))
+
+FeaturePlot(AT2.cds, c("AT2"), pt.size = 0.1) & scale_color_viridis_c()
+ggsave(here('explore_figure/Fig3/AT2_monocle.pdf'))
+
+FeaturePlot(AT1.cds, c("AT1"), pt.size = 0.1)
+
+```
+
+

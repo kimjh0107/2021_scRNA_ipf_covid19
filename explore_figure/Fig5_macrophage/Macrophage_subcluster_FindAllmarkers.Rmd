@@ -1,0 +1,85 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(biomaRt)
+library(clusterProfiler)
+library(org.Hs.eg.db)
+```
+
+```{r}
+macrophage <- readRDS(here('explore/RDS/macrophage_new_submain.RDS'))
+```
+
+```{r}
+unique(macrophage$new_submain3)
+```
+
+```{r}
+Idents(macrophage) <- "new_submain3"
+levels(macrophage)
+```
+
+```{r}
+test <- FindAllMarkers(macrophage, only.pos = T, min.pct = 0.25, logfc.threshold = 0.25)
+
+test %>%
+    group_by(cluster) %>%
+    slice_max(n = 10, order_by = avg_log2FC)
+```
+
+```{r}
+control <- subset(macrophage, subset = Diagnosis == "Control")
+covid <- subset(macrophage, subset = Diagnosis == "COVID")
+ipf <- subset(macrophage, subset = Diagnosis == "IPF")
+```
+
+```{r}
+# Control
+control_markers <- FindAllMarkers(control, only.pos = T, min.pct = 0.25, logfc.threshold = 0.25)
+
+control_markers %>%
+    group_by(cluster) %>%
+    slice_max(n = 10, order_by = avg_log2FC)
+```
+
+```{r}
+# covid
+covid_markers <- FindAllMarkers(covid, only.pos = T, min.pct = 0.25, logfc.threshold = 0.25)
+
+covid_markers %>%
+    group_by(cluster) %>%
+    slice_max(n = 10, order_by = avg_log2FC)
+```
+
+```{r}
+# ipf
+ipf_markers <- FindAllMarkers(ipf, only.pos = T, min.pct = 0.25, logfc.threshold = 0.25)
+
+ipf_markers %>%
+    group_by(cluster) %>%
+    slice_max(n = 10, order_by = avg_log2FC)
+```
+
+```{r}
+write_csv(control_markers %>%
+    group_by(cluster) %>%
+    slice_max(n = 20, order_by = avg_log2FC), "control_markers.csv")
+
+write_csv(covid_markers %>%
+    group_by(cluster) %>%
+    slice_max(n = 20, order_by = avg_log2FC), "covid_markers.csv")
+
+write_csv(ipf_markers %>%
+    group_by(cluster) %>%
+    slice_max(n = 20, order_by = avg_log2FC), "ipf_markers.csv")
+```
+
+
+
+

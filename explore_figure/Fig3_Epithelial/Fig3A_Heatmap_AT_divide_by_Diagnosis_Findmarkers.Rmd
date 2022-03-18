@@ -1,0 +1,125 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(DoMultiBarHeatmap)
+```
+
+```{r}
+Epithelial_test <- readRDS(here("explore/RDS/06_Epithelial_celltype.RDS"))
+AT <- subset(Epithelial_test, subset = cell_type_submain %in% c("AT1", "AT2"))
+AT <- subset(AT, subset = Diagnosis %in% c("COVID", "IPF"))
+
+AT1 <- subset(Epithelial_test, subset = cell_type_submain == "AT1")
+AT2 <- subset(Epithelial_test, subset = cell_type_submain == "AT2")
+rm(Epithelial_test)
+```
+
+
+```{r}
+features_new_sorting <- c(
+# AT1 covid 
+'HBB',
+'HBA1',
+'HBA2',
+'CRYAB',
+'ANGPTL4',
+'HILPDA',
+'SPP1',
+'CCL20',
+#'GPRC5A',
+'ELF3',
+'CTSL',
+'DKK1',
+'F3',
+'CH25H',
+'HLA-G',
+'CDKN1C',
+'TM4SF1',
+'MET',
+'KRT8',
+'AKR1C1',
+'CYR61',
+
+# AT1 IPF 
+'SCGB1A1',
+'PRSS2',
+'GRP',
+'TFF3',
+'SLPI',
+'SPINK1',
+'LRRK2',
+'NAPSA',
+'PCSK1N',
+#'WIF1',
+'CHGA',
+'NUPR1',
+#'AQP1',
+'LAMP3',
+'MYL9',
+'CYB5A',
+'PCP4',
+'AK1',
+'MMP1',
+#'SFTA2'
+'SFTPD',
+'ANKRD1',
+'MGP',
+
+# AT2 covid 
+'S100A8',
+'SCGB3A1',
+'BPIFB1',
+#'SCGB1A1',
+'CCL4L2',
+'G0S2',
+'S100A9',
+'LYZ',
+'MT2A',
+'ALOX5AP',
+'RASD1',
+'MT1X',
+'CXCL8',
+'BCL2A1',
+'MT1G',
+'CCL4',
+'SAA1',
+'SOX4 ',
+'GPRC5A',
+#'TFF3'
+'ID1',
+'HSPA5',
+
+# AT2 IPF
+'WIF1',
+'AQP1',
+'PGC',
+'SFTPA2',
+'XAGE2',
+'CXCL2',
+'SFTPC',
+'SCD',
+'CLDN18',
+#'NAPSA',
+'SFTPA1',
+'CA2',
+'SLC22A31',
+'SFTA2',
+#'LRRK2',
+'DHCR24',
+'PLA2G1B',
+'PCSK2',
+'CSF3',
+'CACNA2D2',
+'MUC1',
+'AGER'
+)
+
+DoMultiBarHeatmap(AT, features = features_new_sorting, group.by='cell_type_submain', additional.group.by = c("Diagnosis")) 
+
+```

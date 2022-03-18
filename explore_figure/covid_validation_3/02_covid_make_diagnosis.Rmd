@@ -1,0 +1,71 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r}
+library(Matrix)
+library(rhdf5)
+library(tidyverse)
+library(glue)
+library(here)
+library(hdf5r)
+library(Seurat)
+```
+
+```{r}
+covid_val <- readRDS(here('explore_figure/covid_validation_3/RDS/01_COVID_merge_h5_to_SeuratObject_merge.RDS'))
+```
+
+# Make Diangosis $ Diagnosis_tag columns 
+```{r}
+covid_val$row <- substr(rownames(covid_val@meta.data), 1, 5)
+```
+
+```{r}
+unique(covid_val$row)
+```
+
+```{r}
+
+# Diagnosis
+covid_val@meta.data$Diagnosis <- ifelse(covid_val@meta.data$row %in% c("val7_", "val8_", "val9_"), "Control B", "NA")
+covid_val@meta.data$Diagnosis <- ifelse(covid_val@meta.data$row %in% c("val1_", "val2_", "val4_"), "COVID moderate", covid_val@meta.data$Diagnosis)
+covid_val@meta.data$Diagnosis <- ifelse(covid_val@meta.data$row %in% c("val3_", "val5_", "val6_", "val10", "val11", "val12"), "COVID severe", covid_val@meta.data$Diagnosis)
+covid_val@meta.data$Diagnosis <- ifelse(covid_val@meta.data$row %in% c("obj1_", "obj2_", "obj3_", "obj4_"), "COVID", covid_val@meta.data$Diagnosis)
+
+# HC - healty control 
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val7_"), "HC1", "NA")
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val8_"), "HC2", covid_val@meta.data$Diagnosis_tag)
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val9_"), "HC3", covid_val@meta.data$Diagnosis_tag)
+
+# M - moderate 
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val1_"), "M1", covid_val@meta.data$Diagnosis_tag)
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val2_"), "M2", covid_val@meta.data$Diagnosis_tag)
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val4_"), "M3", covid_val@meta.data$Diagnosis_tag)
+
+# S - severe 
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val3_"), "S1", covid_val@meta.data$Diagnosis_tag)
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val5_"), "S2", covid_val@meta.data$Diagnosis_tag)
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val6_"), "S3", covid_val@meta.data$Diagnosis_tag)
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val10"), "S4", covid_val@meta.data$Diagnosis_tag)
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val11"), "S5", covid_val@meta.data$Diagnosis_tag)
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val12"), "S6", covid_val@meta.data$Diagnosis_tag)
+
+# C - covid lung 
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("obj1_"), "C1", covid_val@meta.data$Diagnosis_tag)
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("obj2_"), "C2", covid_val@meta.data$Diagnosis_tag)
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("obj3_"), "C3", covid_val@meta.data$Diagnosis_tag)
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("obj4_"), "C4", covid_val@meta.data$Diagnosis_tag)
+
+```
+
+```{r}
+saveRDS(covid_val, file = "02_COVID_make_Diagnosis.RDS")
+```
+
+
+
+
+
+

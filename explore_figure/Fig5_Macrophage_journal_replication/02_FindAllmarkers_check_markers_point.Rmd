@@ -1,0 +1,58 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(tidyverse)
+library(here)
+library(SingleCellExperiment)
+```
+
+```{r}
+macrophage <- readRDS(here('explore/RDS/macrophage_journal_replication.RDS'))
+```
+
+
+```{r}
+head(macrophage)
+DimPlot(macrophage, group.by = "Diagnosis", label = T)
+
+control_covid <- subset(macrophage, subset = Diagnosis == "Control" | Diagnosis == "COVID")
+DimPlot(control_covid, group.by = "Diagnosis", label = T)
+```
+
+```{r}
+DefaultAssay(macrophage) <- "RNA"
+DefaultAssay(control_covid) <- "RNA"
+
+control_covid_ipf_markers <- FindAllMarkers(macrophage, only.pos = T, min.pct = 0.25, logfc.threshold = 0.25)
+control_covid_ipf_markers$gene <- rownames(control_covid_ipf_markers)
+write_csv(control_covid_ipf_markers, "control_covid_ipf_markers1.csv")
+
+#control_covid_markers <- FindAllMarkers(control_covid, only.pos = T, min.pct = 0.25, logfc.threshold = 0.25)
+#control_covid_markers$gene <- rownames(control_covid_markers)
+#write_csv(control_covid, "control_covid_markers1.csv")
+
+```
+
+```{r}
+cluster18 <- FindMarkers(macrophage, ident.1 = 18, only.pos = T, min.pct = 0.25, logfc.threshold = 0.25)
+cluster18$gene <- rownames(cluster18)
+write_csv(cluster18, "cluster18.csv")
+```
+
+```{r}
+cluster5 <- FindMarkers(macrophage, ident.1 = 5, only.pos = T, min.pct = 0.25, logfc.threshold = 0.25)
+cluster5$gene <- rownames(cluster5)
+write_csv(cluster5, "cluster5.csv")
+```
+
+
+
+
+
+
+
+

@@ -1,0 +1,43 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(tidyverse)
+library(here)
+library(SingleCellExperiment)
+library(cowplot)
+library(knitr)
+library(sctransform)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+```{r}
+macrophage <- readRDS(here('explore/RDS/macrophage_journal_replicaton3.RDS'))
+```
+
+```{r}
+DefaultAssay(macrophage) <- "RNA"
+```
+
+```{r}
+FCN1_faetures <- c("FCN1" , "IL18","S100A8", "CD14")
+SPP1_features <- c("SPP1", "MERTK", "GPR183", "CCL13", "TGFB1")
+FABP4_features <- c("FABP4", "INHBA", "APOC1", "MARCO")
+```
+
+```{r}
+FeaturePlot(macrophage, features = FCN1_faetures)
+FeaturePlot(macrophage, features = SPP1_features)
+FeaturePlot(macrophage, features = FABP4_features)
+```
+
+
+
+
+
+

@@ -1,0 +1,39 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(DoMultiBarHeatmap)
+```
+
+```{r}
+Epithelial_test <- readRDS(here("explore/RDS/06_Epithelial_celltype.RDS"))
+```
+
+# late AT1 maturation markers = "CAV1" 
+# transcription factor maintaining AT2 cell identity markers = "ETV5"
+
+```{r}
+DefaultAssay(Epithelial_test) <- "RNA"
+VlnPlot(Epithelial_test, features = c("CAV1"), group.by = 'Diagnosis', sort = TRUE, pt.size = 0.01, split.by = "Diagnosis")
+#ggsave(here('explore_figure/Fig3/Fig3C_Violin_late_AT1_markers_pt_yes.pdf'))
+VlnPlot(Epithelial_test, features = c("CAV1"), group.by = 'Diagnosis', sort = TRUE, pt.size = 0, split.by = "Diagnosis") 
+#ggsave(here("explore_figure/Fig3/Fig3C_Violin_late_AT1_markers_pt_no.pdf"))
+
+VlnPlot(Epithelial_test, features = c("ETV5"), group.by = 'Diagnosis', sort = TRUE, pt.size = 0.01, split.by = "Diagnosis")
+#ggsave(here("Fig3C_Violin_AT2_maintaining_cell_identity_pt_yes"))
+VlnPlot(Epithelial_test, features = c("ETV5"), group.by = 'Diagnosis', sort = TRUE, pt.size = 0.00, split.by = "Diagnosis")
+#ggsave(here("Fig3C_Violin_AT2_maintaining_cell_identity_pt_no"))
+
+
+```
+
+
+
+
+
+

@@ -1,0 +1,66 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+```
+
+```{r}
+Epithelial_test <- readRDS(here("explore/RDS/06_Epithelial_celltype.RDS"))
+
+subset <- subset(Epithelial_test, subset = Diagnosis == "COVID" | Diagnosis == "IPF")
+features = c("S100A8", "S100A9", "CCL4L2", "G0S2", "LYZ", "CXCL8", "BCL2A1")
+
+```
+
+```{r}
+Idents(Epithelial_test) <- "cell_type_submain"
+Idents(subset) <- "cell_type_submain"
+```
+
+```{r}
+DotPlot(Epithelial_test, features = features, cols = c("grey", "orange", "Red"), split.by = "Diagnosis" ) 
+
+```
+
+
+```{r}
+DotPlot(Epithelial_test, features = features, cols = c("grey", "orange", "Red"), split.by = "Diagnosis") + theme_classic() + RotatedAxis() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        axis.text.y = element_text(vjust = 1, hjust = 1, size =8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 12, face = 'bold'), legend.position = 'right') +  NoLegend() + 
+  scale_y_discrete(limits=c(
+  'Gobelt Cel_IPF',
+  'Gobelt Cel_COVID',
+  'Gobelt Cel_Control',
+  'Club Cell_IPF', 
+  'Club Cell_COVID',
+  'Club Cell_Control',
+  'Ciliated Cell_IPF', 
+  'Ciliated Cell_COVID',
+  'Ciliated Cell_Control',
+  'Basal Cell_IPF',
+  'Basal Cell_COVID',
+  'Basal Cell_Control',
+  "AT2_IPF",
+  "AT2_COVID",
+  "AT2_Control",
+  "AT1_IPF",
+  "AT1_COVID",
+  "AT1_Control"
+))
+```
+
+
+
+
+
+
+
+
+
+

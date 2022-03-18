@@ -1,0 +1,33 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(DoMultiBarHeatmap)
+```
+
+```{r}
+Epithelial_test <- readRDS(here("explore/RDS/06_Epithelial_celltype.RDS"))
+```
+```{r}
+AT <- subset(Epithelial_test, subset = cell_type_submain %in% c("AT1", "AT2"))
+AT <- subset(AT, subset = Diagnosis %in% c("COVID", "IPF"))
+```
+
+```{r}
+Idents(AT) <- "cell_type_submain"
+DefaultAssay(AT) <- "integrated"
+sub_markers <- FindAllMarkers(AT, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+
+top10 <- sub_markers %>% 
+  group_by(cluster) %>% 
+  top_n(n = 30, wt = avg_log2FC)
+
+```
+
+DoMultiBarHeatmap(AT, features = top10$gene, group.by='cell_type_submain', additional.group.by = c("Diagnosis")) 

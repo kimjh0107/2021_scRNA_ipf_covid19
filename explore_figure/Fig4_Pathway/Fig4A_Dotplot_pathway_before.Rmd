@@ -1,0 +1,203 @@
+---
+title: "Dotplot_subset_covid_ipf"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(tidyverse)
+library(here)
+```
+
+```{r}
+pathway_subset <- readRDS(here("explore/RDS/Fig4_pathway_subset.RDS"))
+```
+
+```{r}
+unique(pathway_subset$Diagnosis)
+```
+
+# IPF $ COVID 에 대해 subset진행 
+```{r}
+pathway <- subset(pathway_subset, subset = Diagnosis == "Control" | Diagnosis == "COVID" | Diagnosis == "IPF")
+```
+
+
+```{r}
+Idents(pathway) <- "Diagnosis"
+DefaultAssay(pathway) <- "RNA"
+
+topmarkers_pathway_COVID = FindMarkers(pathway, ident.1 = "COVID", ident.2 = "IPF", only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+topmarkers_pathway_IPF = FindMarkers(pathway, ident.1 = "IPF", ident.2 = "COVID", only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+
+write.csv(topmarkers_pathway_COVID, "pathway_COVID_markers.csv", row.names = TRUE)
+write.csv(topmarkers_pathway_IPF, "pathway_IPF_markers.csv", row.names = TRUE)
+```
+
+```{r}
+topmarkers_pathway_COVID$gene <- rownames(topmarkers_pathway_COVID)
+topmarkers_pathway_IPF$gene <- rownames(topmarkers_pathway_IPF)
+
+TGF_pathway <- read.csv(here("TGF_pathway.csv"))
+WNT_pathway <- read.csv(here("WNT_pathway.csv"))
+```
+
+```{r}
+covid_genelist <- topmarkers_pathway_COVID %>% rownames()
+ipf_genelist <- topmarkers_pathway_IPF %>% rownames()
+TGF_genelist <- TGF_pathway$gene
+WNT_genelist <- WNT_pathway$gene 
+
+# make to dateframe 
+df_covid <- data.frame(covid_genelist)
+df_ipf <- data.frame(ipf_genelist)
+df_tgf <- data.frame(TGF_genelist)
+df_wnt <- data.frame(WNT_genelist)
+
+# add gene columns 
+df_covid$gene <- df_covid$covid_genelist
+df_ipf$gene <- df_ipf$ipf_genelist
+df_tgf$gene <- df_tgf$TGF_genelist
+df_wnt$gene <- df_wnt$WNT_genelist
+```
+
+```{r}
+# merge - use inner join  
+# covid 
+df_covid_tgf <- inner_join(df_covid, df_tgf, by = "gene")
+df_covid_wnt <- inner_join(df_covid, df_wnt, by = "gene")
+
+# ipf 
+df_ipf_tgf <- inner_join(df_ipf, df_tgf, by = "gene")
+df_ipf_wnt <- inner_join(df_ipf, df_wnt, by = "gene")
+```
+
+```{r}
+df_covid_tgf
+df_covid_wnt
+df_ipf_tgf
+df_ipf_wnt
+```
+
+```{r}
+genes_list <- c(
+#<TGF> 
+'ID2',
+'ZFYVE16',
+'THBS1',
+'ROCK1',
+'SKP1',
+'RBX1',
+'PPP2R1A',
+'ID3',
+'ID1',
+'TGFBR2',
+
+#<WNT>
+'CTNNB1',
+'PPP2R5C',
+'CHP1',
+'PRKCB',
+#'ROCK1',
+'PRKACA',
+#'SKP1',
+'CCND1',
+#'RBX1',
+#'PPP2R1A',
+'RUVBL1', 
+
+# fibrosis related gene 
+'CTHRC1', 
+'COL1A1', 
+'COL3A1',
+'PDGFRA',
+'ELN', 
+'ACTA2',
+
+'SPINT2',
+'FGFR4',
+'GPC3', 
+'NPNT', 
+'CES1',
+
+'SERPINF1', 
+'PI16'
+)
+
+pathway_name <- c(
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+'TGF-BETA Signaling Pathway',
+
+'WNT Signaling Pathway',
+'WNT Signaling Pathway',
+'WNT Signaling Pathway',
+'WNT Signaling Pathway',
+'WNT Signaling Pathway',
+'WNT Signaling Pathway',
+'WNT Signaling Pathway',
+#'WNT Signaling Pathway',
+#'WNT Signaling Pathway',
+#'WNT Signaling Pathway',
+#'WNT Signaling Pathway'
+
+"Fibrosis Related Genes",
+"Fibrosis Related Genes",
+"Fibrosis Related Genes",
+"Fibrosis Related Genes",
+"Fibrosis Related Genes",
+"Fibrosis Related Genes",
+"Fibrosis Related Genes",
+"Fibrosis Related Genes",
+"Fibrosis Related Genes",
+"Fibrosis Related Genes",
+"Fibrosis Related Genes",
+"Fibrosis Related Genes",
+"Fibrosis Related Genes"
+)
+
+
+genes <- data.frame(genes_list, pathway_name)
+
+```
+
+# plot 
+```{r}
+Idents(pathway) <- "cell_type_submain"
+levels(pathway)
+
+```
+
+```{r}
+Idents(pathway) <- "cell_type_submain"
+```
+
+
+```{r}
+DotPlot(pathway, features = genes$genes_list, cols = c("blue", "deeppink3", "red"), dot.scale = 5, split.by = "Diagnosis", assay = "RNA") +
+  guides(color = guide_colorbar(title = "Gene Average Expression")) + 
+  facet_grid(~genes$pathway_name,
+             scales = "free",
+             space = "free") + 
+  guides(color = guide_colorbar(title = 'Average Expression')) + 
+  theme_classic() + 
+  RotatedAxis() + 
+  labs(title = "Pathway") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        axis.text.y = element_text(vjust = 1, hjust = 1, size =8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 12, face = 'bold'), legend.position = 'right') 
+
+```
+
+ 
+
+
+

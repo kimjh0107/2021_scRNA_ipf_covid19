@@ -1,0 +1,20 @@
+---
+title: "Untitled"
+output: html_document
+---
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+```
+
+```{r}
+tcell <- readRDS(here('explore/RDS/Tcell2.RDS'))
+```
+
+```{r}
+DimPlot(tcell, group.by = "new_submain2", label = T ,split.by = "Diagnosis")
+```
+
+
+

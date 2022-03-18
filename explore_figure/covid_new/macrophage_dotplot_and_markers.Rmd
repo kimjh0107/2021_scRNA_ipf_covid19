@@ -1,0 +1,197 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r}
+macrophage2 <- macrophage 
+```
+
+
+```{r}
+DefaultAssay(macrophage2) <- "integrated"
+macrophage2 <- ScaleData(object = macrophage2)
+macrophage2 <- RunPCA(object = macrophage2)
+macrophage2 <- FindNeighbors(macrophage2, dims = 1:50)
+macrophage2 <- FindClusters(macrophage2, resolution = 0.8)
+macrophage2 <- RunUMAP(object = macrophage2, dims = 1:30)
+
+DimPlot(macrophage2, group.by = "seurat_clusters", label = T)
+```
+
+```{r}
+DimPlot(macrophage2, group.by = "Diagnosis", label = T)
+
+```
+
+```{r}
+control <- subset(macrophage2, subset = Diagnosis == "Control")
+control_b <- subset(macrophage2, subset = Diagnosis == "Control B")
+covid <- subset(macrophage2, subset = Diagnosis == "COVID")
+covid_severe <- subset(macrophage2, subset = Diagnosis == "COVID severe")
+covid_moderate <- subset(macrophage2, subset = Diagnosis == "COVID moderate")
+ipf <- subset(macrophage2, subset = Diagnosis == "IPF")
+
+DimPlot(control, group.by = "Diagnosis", label = T)
+DimPlot(control_b, group.by = "Diagnosis", label = T)
+DimPlot(covid, group.by = "Diagnosis", label = T)
+DimPlot(covid_severe, group.by = "Diagnosis", label = T)
+DimPlot(covid_moderate, group.by = "Diagnosis", label = T)
+DimPlot(ipf, group.by = "Diagnosis", label = T)
+
+```
+
+
+
+
+```{r}
+DimPlot(macrophage2, group.by = "seurat_clusters", label = T)
+
+DefaultAssay(macrophage2) <- "RNA"
+
+FeaturePlot(macrophage2, features = c("FABP4"))
+FeaturePlot(macrophage2, features = c("SPP1"))
+FeaturePlot(macrophage2, features = c("FCN1"))
+
+
+FeaturePlot(macrophage2, features = c("CD14"))
+FeaturePlot(macrophage2, features = c("FCGR3A")) # CD16
+FeaturePlot(macrophage2, features = c("MRC1")) # CD206
+FeaturePlot(macrophage2, features = c("SIGLEC1")) # C169
+
+
+# M1 
+FeaturePlot(macrophage, features = c("IL12A"))
+FeaturePlot(macrophage, features = c("TNF"))  # TNF-a
+FeaturePlot(macrophage, features = c("IL6"))
+FeaturePlot(macrophage, features = c("IL12B")) # IL23 
+FeaturePlot(macrophage, features = c("CXCL8"))
+FeaturePlot(macrophage, features = c("CXCL9"))
+FeaturePlot(macrophage, features = c("CXCL10"))
+FeaturePlot(macrophage, features = c("CXCL16"))
+FeaturePlot(macrophage, features = c("CCL2"))
+FeaturePlot(macrophage, features = c("CCL3"))
+FeaturePlot(macrophage, features = c("CCL5"))
+# M2 
+FeaturePlot(macrophage, features = c("CXCR1"))
+FeaturePlot(macrophage, features = c("CXCR2"))
+FeaturePlot(macrophage, features = c("CCL17"))
+FeaturePlot(macrophage, features = c("CCL18"))
+FeaturePlot(macrophage, features = c("CCL22"))
+FeaturePlot(macrophage, features = c("CCL24"))
+FeaturePlot(macrophage, features = c("FCER2")) # CD23
+FeaturePlot(macrophage, features = c("CD163"))
+
+```
+
+
+```{r}
+macrophage2@meta.data$new_submain <- ifelse(macrophage2@meta.data$seurat_clusters %in% c(24,7,4,0,6,27,18,14,11), "FABP4+ Macrophage", "NA")
+macrophage2@meta.data$new_submain <- ifelse(macrophage2@meta.data$seurat_clusters %in% c(20,8,12,23,1,10), "FCN1+ Monocyte", macrophage2@meta.data$new_submain)
+macrophage2@meta.data$new_submain <- ifelse(macrophage2@meta.data$seurat_clusters %in% c(25,5,31,9,29,28,22,17,15), "SPP1+ Macrophage", macrophage2@meta.data$new_submain)
+macrophage2@meta.data$new_submain <- ifelse(macrophage2@meta.data$seurat_clusters %in% c(16,2,25,26,30,3), "FCN1/SPP1 Macrophage", macrophage2@meta.data$new_submain)
+macrophage2@meta.data$new_submain <- ifelse(macrophage2@meta.data$seurat_clusters %in% c(13, 19, 21), "Mixed Macrophage", macrophage2@meta.data$new_submain)
+
+macrophage2@meta.data$new_submain2 <- ifelse(macrophage2@meta.data$seurat_clusters %in% c(12,8,20), "Monocyte", "NA")
+macrophage2@meta.data$new_submain2 <- ifelse(macrophage2@meta.data$seurat_clusters %in% c(23,1,2,5,25,26,30, 15,24,7,11,4, 9, 29,28, 19, 17, 10, 16), "Alveolar macrophages", macrophage2@meta.data$new_submain2)
+macrophage2@meta.data$new_submain2 <- ifelse(macrophage2@meta.data$seurat_clusters %in% c(3, 22,18,14,27,0,6), "Interstitial macrophages", macrophage2@meta.data$new_submain2)
+
+
+DimPlot(macrophage2, group.by = "new_submain", label = T, repel = T)
+DimPlot(macrophage2, group.by = "new_submain2", label = T, repel = T)
+
+DimPlot(macrophage2, group.by = "Diagnosis", label = T)
+
+```
+
+
+# 위에 부분에 IPF만 발현이 되는 부분도 제외하고 위에 macrophage2처럼 preprocess 과정을 진행해준 다음에 결과 확인 
+
+
+```{r}
+macrophage3 <- macrophage
+
+macrophage3 <- subset(macrophage3, subset = seurat_clusters != 14)
+
+DefaultAssay(macrophage3) <- "integrated"
+macrophage3 <- ScaleData(object = macrophage3)
+macrophage3 <- RunPCA(object = macrophage3)
+macrophage3 <- FindNeighbors(macrophage3, dims = 1:50)
+macrophage3 <- FindClusters(macrophage3, resolution = 0.8)
+macrophage3 <- RunUMAP(object = macrophage3, dims = 1:30)
+```
+
+```{r}
+DimPlot(macrophage3, group.by = "seurat_clusters", label = T)
+
+FeaturePlot(macrophage3, features = c("FABP4"))
+FeaturePlot(macrophage3, features = c("SPP1"))
+FeaturePlot(macrophage3, features = c("FCN1"))
+
+
+FeaturePlot(macrophage3, features = c("CD14"))
+FeaturePlot(macrophage3, features = c("FCGR3A")) # CD16
+FeaturePlot(macrophage3, features = c("MRC1")) # CD206
+FeaturePlot(macrophage3, features = c("SIGLEC1")) # C169
+
+```
+
+```{r}
+DimPlot(macrophage3, group.by = "seurat_clusters", label = T)
+
+DefaultAssay(macrophage3) <- "RNA"
+FeaturePlot(macrophage3, features = c("FABP4"))
+FeaturePlot(macrophage3, features = c("SPP1"))
+FeaturePlot(macrophage3, features = c("FCN1"))
+
+DefaultAssay(macrophage3) <- "integrated"
+FeaturePlot(macrophage3, features = c("FABP4"))
+FeaturePlot(macrophage3, features = c("SPP1"))
+FeaturePlot(macrophage3, features = c("FCN1"))
+```
+
+
+# Dotplot 을 통해서 확인해주기 
+# plot 
+```{r}
+#Idents(pathway) <- "cell_type_submain"
+levels(macrophage3)
+```
+```{r}
+DefaultAssay(macrophage3) <- "integrated"
+
+DotPlot(macrophage3, features = c("FABP4", "SPP1", "FCN1"), cols = c("blue", "deeppink3", "red"), dot.scale = 5, assay = "RNA") +
+  guides(color = guide_colorbar(title = "Gene Average Expression")) + 
+  guides(color = guide_colorbar(title = 'Average Expression')) + 
+  theme_classic() + 
+  RotatedAxis() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        axis.text.y = element_text(vjust = 1, hjust = 1, size =8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 12, face = 'bold'), legend.position = 'right') 
+
+```
+
+FeaturePlot(macrophage3, features = c("CD14"))
+FeaturePlot(macrophage3, features = c("FCGR3A")) # CD16
+FeaturePlot(macrophage3, features = c("MRC1")) # CD206
+FeaturePlot(macrophage3, features = c("SIGLEC1")) # C169
+```{r}
+DefaultAssay(macrophage3) <- "integrated"
+
+DotPlot(macrophage3, features = c("CD14", "FCGR3A", "MRC1", "SIGLEC1"), cols = c("blue", "deeppink3", "red"), dot.scale = 5, assay = "RNA") +
+  guides(color = guide_colorbar(title = "Gene Average Expression")) + 
+  guides(color = guide_colorbar(title = 'Average Expression')) + 
+  theme_classic() + 
+  RotatedAxis() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8, face = 'bold'),
+        axis.text.y = element_text(vjust = 1, hjust = 1, size =8, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 12, face = 'bold'), legend.position = 'right') 
+
+```
+
+
+
+
+
+
+

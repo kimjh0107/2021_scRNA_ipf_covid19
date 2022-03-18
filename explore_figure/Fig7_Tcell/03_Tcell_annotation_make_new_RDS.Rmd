@@ -1,0 +1,111 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(here)
+library(tidyverse)
+```
+
+```{r}
+tcell <- readRDS(here('explore/RDS/Tcell.RDS'))
+```
+
+```{r}
+DefaultAssay(tcell) <- "RNA"
+
+tcell_markers <- FindAllMarkers(tcell, only.pos = T, min.pct = 0.25, logfc.threshold = 0.25, test.use = "MAST")
+tcell_markers$gene <- rownames(tcell_markers)
+write_csv(tcell_markers, "tcell_markers_mast.csv")
+```
+
+
+```{r}
+DimPlot(tcell, group.by = "cell_type_submain", label = T)
+DimPlot(tcell, group.by = "seurat_clusters", label = T)
+DimPlot(tcell, group.by = "Diagnosis", label = T)
+```
+```{r}
+FeaturePlot(tcell, features = c("CXCR6"))
+
+```
+
+```{r}
+
+FeaturePlot(tcell, features = c("CD8A"))
+FeaturePlot(tcell, features = c("CD8B"))
+
+FeaturePlot(tcell, features = c("CXCR3"))
+FeaturePlot(tcell, features = c("CXCR4"))
+FeaturePlot(tcell, features = c("CCR8"))
+
+#FeaturePlot(tcell, features = c("CRTH2"))
+
+
+FeaturePlot(tcell, features = c("CCR6"))
+FeaturePlot(tcell, features = c("KLRB1"))
+
+FeaturePlot(tcell, features = c("IL2RA"))
+
+FeaturePlot(tcell, features = c("CXCR5"))
+FeaturePlot(tcell, features = c("ICOS"))
+FeaturePlot(tcell, features = c("PDCD1"))
+
+
+FeaturePlot(tcell, features = c("GZMB"))
+
+```
+
+```{r}
+FeaturePlot(tcell, features = c("FCGR3A", "PECAM1", "TNFRSF8"))
+
+```
+
+
+```{r}
+FeaturePlot(tcell, features = c("CCR1", "CCR5", "CD3", "CD4", "CXCR3", "IL12"))
+FeaturePlot(tcell, features = c("CCR3", "CCR4", "CCR8", "IL4", "IL5", "IL13"))
+FeaturePlot(tcell, features = c("CCR6", "IL17", "SMAD4"))
+FeaturePlot(tcell, features = c("CCR6","CCR10","IL22", "FGF1", "FGF5"))
+FeaturePlot(tcell, features = c("IL9"))
+FeaturePlot(tcell, features = c("CXCR5", "ICOS", "IL21", "PD1", "CCR5"))
+
+```
+
+
+```{r}
+head(tcell)
+```
+
+```{r}
+DimPlot(tcell, group.by = "seurat_clusters", label = T)
+```
+
+3,5,8,9,10,16,20,     21
+```{r}
+tcell@meta.data$new_submain2 <- ifelse(tcell@meta.data$seurat_clusters %in% c(0,5,7,11,14,18,4,19,13, 16), "CD8+ Tcell", "NA")
+tcell@meta.data$new_submain2 <- ifelse(tcell@meta.data$seurat_clusters %in% c(6), "Th1 Cell", tcell@meta.data$new_submain2)
+tcell@meta.data$new_submain2 <- ifelse(tcell@meta.data$seurat_clusters %in% c(1, 15), "Th17 Cell", tcell@meta.data$new_submain2)
+tcell@meta.data$new_submain2 <- ifelse(tcell@meta.data$seurat_clusters %in% c(12), "Treg", tcell@meta.data$new_submain2)
+tcell@meta.data$new_submain2 <- ifelse(tcell@meta.data$seurat_clusters %in% c(2), "Tfh Cell", tcell@meta.data$new_submain2)
+tcell@meta.data$new_submain2 <- ifelse(tcell@meta.data$seurat_clusters %in% c(13), "Proliferating Tcell", tcell@meta.data$new_submain2)
+tcell@meta.data$new_submain2 <- ifelse(tcell@meta.data$seurat_clusters %in% c(3,8,9,10, 20), "NK Cell", tcell@meta.data$new_submain2)
+DimPlot(tcell, group.by = "new_submain2", label = T)
+```
+```{r}
+tcell <- subset(tcell, seurat_clusters != 21)
+tcell <- subset(tcell, seurat_clusters != 17)
+
+tcell <- ScaleData(tcell)
+tcell <- RunPCA(tcell)
+tcell <- RunUMAP(tcell, dims = 1:30)
+DimPlot(tcell, group.by = "new_submain2", label = T)
+```
+
+```{r}
+saveRDS(tcell, file = "Tcell2.RDS")
+
+```
+

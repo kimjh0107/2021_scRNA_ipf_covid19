@@ -1,0 +1,114 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r}
+library(Matrix)
+library(rhdf5)
+library(tidyverse)
+library(glue)
+library(here)
+library(hdf5r)
+library(Seurat)
+```
+
+```{r}
+covid_val <- readRDS(here('explore/RDS/COVID_val_Preprocessing2.RDS'))
+```
+
+# Make Diangosis $ Diagnosis_tag columns 
+```{r}
+covid_val$row <- substr(rownames(covid_val@meta.data), 1, 5)
+
+# Diagnosis
+covid_val@meta.data$Diagnosis <- ifelse(covid_val@meta.data$row %in% c("val7_", "val8_", "val9_"), "Control", "NA")
+covid_val@meta.data$Diagnosis <- ifelse(covid_val@meta.data$row %in% c("val1_", "val2_", "val4_"), "COVID moderate", covid_val@meta.data$Diagnosis)
+covid_val@meta.data$Diagnosis <- ifelse(covid_val@meta.data$row %in% c("val3_", "val5_", "val6_", "val10", "val11", "val12"), "COVID severe", covid_val@meta.data$Diagnosis)
+
+# HC - healty control 
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val7_"), "HC1", "NA")
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val8_"), "HC2", covid_val@meta.data$Diagnosis_tag)
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val9_"), "HC3", covid_val@meta.data$Diagnosis_tag)
+
+# M - moderate 
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val1_"), "M1", covid_val@meta.data$Diagnosis_tag)
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val2_"), "M2", covid_val@meta.data$Diagnosis_tag)
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val4_"), "M3", covid_val@meta.data$Diagnosis_tag)
+
+# S - severe 
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val3_"), "S1", covid_val@meta.data$Diagnosis_tag)
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val5_"), "S2", covid_val@meta.data$Diagnosis_tag)
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val6_"), "S3", covid_val@meta.data$Diagnosis_tag)
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val10"), "S4", covid_val@meta.data$Diagnosis_tag)
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val11"), "S5", covid_val@meta.data$Diagnosis_tag)
+covid_val@meta.data$Diagnosis_tag <- ifelse(covid_val@meta.data$row %in% c("val12"), "S6", covid_val@meta.data$Diagnosis_tag)
+
+```
+
+
+```{r}
+DimPlot(covid_val, group.by = "seurat_clusters", label = T)
+DimPlot(covid_val, group.by = "Diagnosis", label = T)
+```
+
+```{r}
+DefaultAssay(covid_val) <- "RNA"
+
+FeaturePlot(covid_val, features = c("MRC1")) # CD206
+FeaturePlot(covid_val, features = c("SIGLEC1")) # CD169
+
+# monocyte 
+FeaturePlot(covid_val, features = c("CD14")) # 
+FeaturePlot(covid_val, features = c("S100A8")) 
+
+
+FeaturePlot(covid_val, features = c("FABP4"))
+FeaturePlot(covid_val, features = c("FCN1"))
+FeaturePlot(covid_val, features = c("SPP1"))
+
+```
+
+
+
+```{r}
+# M1 
+FeaturePlot(covid_val, features = c("IL12A"))
+FeaturePlot(covid_val, features = c("TNF"))  # TNF-a
+FeaturePlot(covid_val, features = c("IL6"))
+FeaturePlot(covid_val, features = c("IL12B")) # IL23
+FeaturePlot(covid_val, features = c("CXCL8"))
+FeaturePlot(covid_val, features = c("CXCL9"))
+FeaturePlot(covid_val, features = c("CXCL10"))
+FeaturePlot(covid_val, features = c("CXCL16"))
+FeaturePlot(covid_val, features = c("CCL2"))
+FeaturePlot(covid_val, features = c("CCL3"))
+FeaturePlot(covid_val, features = c("CCL5"))
+
+# M2 
+FeaturePlot(covid_val, features = c("CXCR1"))
+FeaturePlot(covid_val, features = c("CXCR2"))
+FeaturePlot(covid_val, features = c("CCL17"))
+FeaturePlot(covid_val, features = c("CCL18"))
+FeaturePlot(covid_val, features = c("CCL22"))
+FeaturePlot(covid_val, features = c("CCL24"))
+FeaturePlot(covid_val, features = c("FCER2")) # CD23
+FeaturePlot(covid_val, features = c("CD163"))
+```
+
+```{r}
+covid_subset <- subset(covid_val, subset = seurat_clusters %in% c(13,8,0,2,12,6,14,19,20,5,3,23,4,25,1,24))
+DimPlot(covid_subset , group.by = "seurat_clusters", label = T)
+
+covid_subset <- ScaleData(object = covid_subset)
+covid_subset <- FindVariableFeatures(covid_subset)
+covid_subset <- RunPCA(object = covid_subset)
+covid_subset <- FindNeighbors(covid_subset, dims = 1:50)
+covid_subset <- FindClusters(covid_subset, resolution = 0.8)
+covid_subset <- RunUMAP(object = covid_subset, dims = 1:30)
+
+saveRDS(covid_subset, file = "COVID_subset2.RDS")
+
+```
+
+

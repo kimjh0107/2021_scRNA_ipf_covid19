@@ -1,0 +1,246 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(tidyverse)
+library(here)
+library(SingleCellExperiment)
+library(cowplot)
+library(knitr)
+library(sctransform)
+library(Matrix)
+library(future)
+library(future.apply)
+```
+
+```{r}
+macrophage <- readRDS(here('explore/RDS/macrophage_journal_replicaton3.RDS'))
+```
+
+```{r}
+mast_markers <- read_csv(here("replication_markers_mast.csv"))
+mast_markers
+```
+
+```{r}
+top20 <- mast_markers %>% 
+  group_by(cluster) %>% 
+  top_n(n = 20, wt = avg_log2FC)
+top20
+```
+
+```{r}
+Idents(macrophage) <- "new_submain"
+```
+
+```{r}
+DoHeatmap(macrophage, features = top20$gene) + NoLegend() 
+```
+
+
+```{r}
+gene <- c(
+'S100A8',
+'FCN1',
+'S100A9',
+'S100A12',
+'VCAN',
+'APOBEC3A',
+'THBS1',
+'FGL2',
+'G0S2',
+'CFP',
+'CXCL10',
+'MT1G',
+'LILRA5',
+'IL1B',
+'AREG',
+'RGS2v',
+'CORO1A',
+'MT1X',
+'CD300E',
+'EREG',
+'TIMP1',
+'HSPA6',
+'RBKS',
+'MT2A',
+'IL1R2',
+'NLRP3',
+'BIRC3')
+
+FCN1 <- as.data.frame(gene)
+```
+
+```{r}
+gene <- c(
+'SPP1',
+'CCL2',
+'LGMN',
+'CHI3L1',
+'IL1RN',
+'CHIT1',
+'EMP11',
+'RNASE11',
+'MMP9',
+'CTSL',
+'CCL7',
+'APOE1',
+'GPNMB',
+'PLA2G7',
+'SGK11',
+'CTSB',
+'CCL31',
+'CTSK',
+'MMP7',
+'SDC21',
+'FOLR2'
+)
+
+SPP1 <- as.data.frame(gene)
+```
+
+```{r}
+gene <- c(
+'SFTPC',
+'SCGB1A1',
+'SCGB3A1',
+'SCGB3A2',
+'IGKV1-9',
+'IGKV1-5',
+'GNLY',
+'IGKV4-1',
+'SFTPB',
+'IGLV2-14',
+'SLPI',
+'CCL5',
+'NKG7',
+'IGLV3-1',
+'IGLV1-40',
+'SFTPA1',
+'IGKV3-15',
+'IL32',
+'SFTPA2',
+'JCHAIN',
+'IFITM11',
+'IGKC',
+'HOPX',
+'WFDC2',
+'CST7',
+'PTPRCAP',
+'GZMB',
+'CCL42',
+'GZMA',
+'CD3E',
+'BPIFB1',
+'GZMH',
+'PRF1',
+'CD691',
+'CD7',
+'CYB5A1',
+'NAPSA',
+'SFTA2',
+'CD2',
+'CTSW1',
+'CCL4L21',
+'IGHV4-39',
+'TFF3',
+'SLC34A2'
+
+)
+
+SFTPC <- as.data.frame(gene)
+
+```
+
+```{r}
+gene <- c(
+'CXCL3',
+'MMP19',
+'CXCL2',
+'CCL20',
+'HBA2',
+'FN1',
+'PDK4',
+'PHLDA1',
+'EGR1'
+
+)
+
+Mixed <- as.data.frame(gene)
+
+```
+
+```{r}
+gene <- c(
+'FABP4',
+'C1QB',
+'C1QA',
+'ALOX5AP',
+'RBP4',
+'RETN',
+'APOC4-APOC2',
+'STMN1',
+'MCEMP1',
+'C1QC',
+'INHBA',
+'GCHFR',
+'SERPING1',
+'APOC1',
+'MARCO',
+'FBP1',
+'CD52',
+'SERPINA1',
+'FABP3',
+'CES1',
+'AQP3',
+'PDLIM1'
+
+)
+
+FABP4 <- as.data.frame(gene)
+
+```
+
+
+```{r}
+# 겹치는 부분들이 있는지 확인 -> 결과 : 겹치는 부분이 없다는 것을 확인 가능 
+merge1 <- inner_join(FABP4, FCN1, by = "gene")
+merge2 <- inner_join(FABP4, Mixed, by = "gene")
+merge3 <- inner_join(FABP4, SFTPC, by = "gene")
+merge4 <- inner_join(FABP4, SPP1, by = "gene")
+merge5 <- inner_join(FCN1, Mixed, by = "gene")
+merge6 <- inner_join(FCN1, SFTPC, by = "gene")
+merge7 <- inner_join(FCN1, SPP1, by = "gene")
+merge8 <- inner_join(Mixed, SFTPC, by = "gene")
+merge9 <- inner_join(Mixed, SPP1, by = "gene")
+merge10 <- inner_join(SFTPC, SPP1, by = "gene")
+
+```
+
+# merge every gene 
+```{r}
+merge <- full_join(FCN1, Mixed, by = "gene")
+merge <- full_join(merge, SPP1, by = "gene")
+merge <- full_join(merge, FABP4, by = "gene")
+merge <- full_join(merge, SFTPC, by = "gene")
+merge
+```
+
+```{r}
+DefaultAssay(macrophage) <- "integrated"
+DoHeatmap(macrophage, features = merge$gene) + NoLegend() 
+```
+
+
+
+
+
+
+
+
+
+
+
