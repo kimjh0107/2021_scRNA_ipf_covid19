@@ -1,0 +1,187 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(tidyverse)
+library(here)
+library(ggpubr)
+```
+
+```{r}
+bcell <- readRDS(here("final/RDS/bcell.RDS"))
+mast <- readRDS(here("final/RDS/mast.RDS"))
+neutro <- readRDS(here("final/RDS/neutrophil.RDS"))
+
+DefaultAssay(bcell) <- "RNA"
+DefaultAssay(mast) <- "RNA"
+DefaultAssay(neutro) <- "RNA"
+```
+
+```{r}
+DimPlot(bcell, group.by = "seurat_clusters", label = T, repel = T)
+DimPlot(bcell, group.by = "Diagnosis", label = T, repel = T)
+
+DimPlot(mast, group.by = "seurat_clusters", label = T, repel = T)
+DimPlot(mast, group.by = "Diagnosis", label = T, repel = T)
+
+DimPlot(neutro, group.by = "seurat_clusters", label = T, repel = T)
+DimPlot(neutro, group.by = "Diagnosis", label = T, repel = T)
+```
+
+```{r}
+# Total 
+consistentcolors = colors <- c("#006E82", "#AA0A3C", "#8214A0", "#00A0FA", "#FA5078", 
+                               "#005AC8", "#CC79A7", "#FAE6BE", "#0072B2", "#A0FA82", "#F0F032", "#0AB45A", 
+                               "#FA7850", "#14D2DC", "#FA78FA")
+# calculate frequencies of cell_type_main classes in each sample
+df_tobesummed = data.frame(orig.ident = bcell$Diagnosis_tag, 
+                           group = bcell$Diagnosis, 
+                           cell_type_submain = bcell$seurat_clusters)
+
+df_summed = df_tobesummed %>% group_by(orig.ident, cell_type_submain, group) %>% tally()
+df_summed = df_summed %>% group_by(orig.ident) %>% mutate(freq = n/sum(n))
+
+
+cluster1 <- df_summed %>% filter(cell_type_submain %in% c(1))
+cluster2 <- df_summed %>% filter(cell_type_submain %in% c(2))
+cluster3 <- df_summed %>% filter(cell_type_submain %in% c(3))
+cluster4 <- df_summed %>% filter(cell_type_submain %in% c(4))
+cluster5 <- df_summed %>% filter(cell_type_submain %in% c(5))
+cluster6 <- df_summed %>% filter(cell_type_submain %in% c(6))
+
+my_comparisons <- list(c("Control", "COVID"), c("COVID", "IPF"), c("Control", "IPF"))
+
+get_plot <- function(data){
+   ggboxplot(data, x = "group", y = "freq", color = "group", add = "jitter") + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+    scale_colour_manual(values = consistentcolors[5:2]) +
+    stat_compare_means(comparisons = my_comparisons, label = "p.signif") + 
+    stat_compare_means(label.y=50) +
+    theme(legend.position = "none") + 
+    scale_x_discrete(limits = c("Control", "COVID", "IPF"))
+}
+
+
+cluster1_plot <- get_plot(cluster1) + labs(title="Cluster1", x =" ", y = " ") 
+cluster2_plot <- get_plot(cluster1) + labs(title="Cluster2", x =" ", y = " ") 
+cluster3_plot <- get_plot(cluster1) + labs(title="Cluster3", x =" ", y = " ") 
+cluster4_plot <- get_plot(cluster1) + labs(title="Cluster4", x =" ", y = " ") 
+cluster5_plot <- get_plot(cluster1) + labs(title="Cluster5", x =" ", y = " ") 
+cluster6_plot <- get_plot(cluster1) + labs(title="Cluster6", x =" ", y = " ") 
+
+plot_arrange <- ggarrange(cluster1_plot, cluster2_plot, cluster3_plot,
+                          cluster4_plot, cluster5_plot, cluster6_plot,
+                          ncol = 3, nrow = 2)
+ggsave(plot = plot_arrange, here("final/figure/Boxplot_Bcell_by_cluster.pdf"), height = 18, width = 10)
+
+```
+
+```{r}
+# Total 
+consistentcolors = colors <- c("#006E82", "#AA0A3C", "#8214A0", "#00A0FA", "#FA5078", 
+                               "#005AC8", "#CC79A7", "#FAE6BE", "#0072B2", "#A0FA82", "#F0F032", "#0AB45A", 
+                               "#FA7850", "#14D2DC", "#FA78FA")
+# calculate frequencies of cell_type_main classes in each sample
+df_tobesummed = data.frame(orig.ident = mast$Diagnosis_tag, 
+                           group = mast$Diagnosis, 
+                           cell_type_submain = mast$seurat_clusters)
+
+df_summed = df_tobesummed %>% group_by(orig.ident, cell_type_submain, group) %>% tally()
+df_summed = df_summed %>% group_by(orig.ident) %>% mutate(freq = n/sum(n))
+
+
+cluster1 <- df_summed %>% filter(cell_type_submain %in% c(1))
+cluster2 <- df_summed %>% filter(cell_type_submain %in% c(2))
+cluster3 <- df_summed %>% filter(cell_type_submain %in% c(3))
+cluster4 <- df_summed %>% filter(cell_type_submain %in% c(4))
+cluster5 <- df_summed %>% filter(cell_type_submain %in% c(5))
+cluster6 <- df_summed %>% filter(cell_type_submain %in% c(6))
+
+my_comparisons <- list(c("Control", "COVID"), c("COVID", "IPF"), c("Control", "IPF"))
+
+get_plot <- function(data){
+   ggboxplot(data, x = "group", y = "freq", color = "group", add = "jitter") + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+    scale_colour_manual(values = consistentcolors[5:2]) +
+    stat_compare_means(comparisons = my_comparisons, label = "p.signif") + 
+    stat_compare_means(label.y=50) +
+    theme(legend.position = "none") + 
+    scale_x_discrete(limits = c("Control", "COVID", "IPF"))
+}
+
+
+cluster1_plot <- get_plot(cluster1) + labs(title="Cluster1", x =" ", y = " ") 
+cluster2_plot <- get_plot(cluster1) + labs(title="Cluster2", x =" ", y = " ") 
+cluster3_plot <- get_plot(cluster1) + labs(title="Cluster3", x =" ", y = " ") 
+cluster4_plot <- get_plot(cluster1) + labs(title="Cluster4", x =" ", y = " ") 
+cluster5_plot <- get_plot(cluster1) + labs(title="Cluster5", x =" ", y = " ") 
+cluster6_plot <- get_plot(cluster1) + labs(title="Cluster6", x =" ", y = " ") 
+
+plot_arrange <- ggarrange(cluster1_plot, cluster2_plot, cluster3_plot,
+                          cluster4_plot, cluster5_plot, cluster6_plot,
+                          ncol = 3, nrow = 2)
+ggsave(plot = plot_arrange, here("final/figure/Boxplot_Mast_by_cluster.pdf"), height = 18, width = 10)
+
+```
+
+
+
+
+```{r}
+# Total 
+consistentcolors = colors <- c("#006E82", "#AA0A3C", "#8214A0", "#00A0FA", "#FA5078", 
+                               "#005AC8", "#CC79A7", "#FAE6BE", "#0072B2", "#A0FA82", "#F0F032", "#0AB45A", 
+                               "#FA7850", "#14D2DC", "#FA78FA")
+# calculate frequencies of cell_type_main classes in each sample
+df_tobesummed = data.frame(orig.ident = neutro$Diagnosis_tag, 
+                           group = neutro$Diagnosis, 
+                           cell_type_submain = neutro$seurat_clusters)
+
+df_summed = df_tobesummed %>% group_by(orig.ident, cell_type_submain, group) %>% tally()
+df_summed = df_summed %>% group_by(orig.ident) %>% mutate(freq = n/sum(n))
+
+
+cluster1 <- df_summed %>% filter(cell_type_submain %in% c(1))
+cluster2 <- df_summed %>% filter(cell_type_submain %in% c(2))
+cluster3 <- df_summed %>% filter(cell_type_submain %in% c(3))
+cluster4 <- df_summed %>% filter(cell_type_submain %in% c(4))
+cluster5 <- df_summed %>% filter(cell_type_submain %in% c(5))
+cluster6 <- df_summed %>% filter(cell_type_submain %in% c(6))
+cluster7 <- df_summed %>% filter(cell_type_submain %in% c(7))
+cluster8 <- df_summed %>% filter(cell_type_submain %in% c(8))
+cluster9 <- df_summed %>% filter(cell_type_submain %in% c(9))
+
+my_comparisons <- list(c("Control", "COVID"), c("COVID", "IPF"), c("Control", "IPF"))
+
+get_plot <- function(data){
+   ggboxplot(data, x = "group", y = "freq", color = "group", add = "jitter") + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+    scale_colour_manual(values = consistentcolors[5:2]) +
+    stat_compare_means(comparisons = my_comparisons, label = "p.signif") + 
+    stat_compare_means(label.y=50) +
+    theme(legend.position = "none") + 
+    scale_x_discrete(limits = c("Control", "COVID", "IPF"))
+}
+
+
+cluster1_plot <- get_plot(cluster1) + labs(title="Cluster1", x =" ", y = " ") 
+cluster2_plot <- get_plot(cluster1) + labs(title="Cluster2", x =" ", y = " ") 
+cluster3_plot <- get_plot(cluster1) + labs(title="Cluster3", x =" ", y = " ") 
+cluster4_plot <- get_plot(cluster1) + labs(title="Cluster4", x =" ", y = " ") 
+cluster5_plot <- get_plot(cluster1) + labs(title="Cluster5", x =" ", y = " ") 
+cluster6_plot <- get_plot(cluster1) + labs(title="Cluster6", x =" ", y = " ") 
+cluster7_plot <- get_plot(cluster1) + labs(title="Cluster7", x =" ", y = " ") 
+cluster8_plot <- get_plot(cluster1) + labs(title="Cluster8", x =" ", y = " ") 
+cluster9_plot <- get_plot(cluster1) + labs(title="Cluster9", x =" ", y = " ") 
+
+plot_arrange <- ggarrange(cluster1_plot, cluster2_plot, cluster3_plot,
+                          cluster4_plot, cluster5_plot, cluster6_plot,
+                          cluster7_plot, cluster8_plot, cluster9_plot,
+                          ncol = 3, nrow = 3)
+ggsave(plot = plot_arrange, here("final/figure/Boxplot_Neutrophil_by_cluster.pdf"), height = 18, width = 10)
+
+```
+

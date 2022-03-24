@@ -1,0 +1,112 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(tidyverse)
+library(here)
+library(ggpubr)
+
+df <- readRDS(here("final/RDS/df.RDS"))
+DefaultAssay(df) <- "RNA"
+```
+```{r}
+get_lung_fibrosis_genes <- function(){
+  
+}
+```
+
+```{r}
+
+gene_list <- c("COL1A1")
+exp_data <- FetchData(object = df, vars = c(gene_list,"Diagnosis","Diagnosis_tag", "new_submain"))
+
+df_tobesummed = data.frame(gene = exp_data$COL1A1,
+                           orig.ident = exp_data$Diagnosis_tag, 
+                           group = exp_data$Diagnosis, 
+                           cell_type_submain = exp_data$new_submain)
+df_summed = df_tobesummed %>% group_by(orig.ident,gene, cell_type_submain, group) %>% tally()
+df_summed = df_summed %>% group_by(orig.ident) %>% mutate(freq = n/sum(n))
+df_summed = df_summed %>% filter(gene != 0)
+df_summed
+
+
+unique(df_summed$cell_type_submain)
+
+```
+
+```{r}
+Ciliated_summed <- df_summed %>% filter(cell_type_submain %in% c("Ciliated cells"))
+AT2_summed <- df_summed %>% filter(cell_type_submain %in% c("AT2"))
+Macrophages_summed <- df_summed %>% filter(cell_type_submain %in% c("Macrophages"))
+Basal_summed <- df_summed %>% filter(cell_type_submain %in% c("Basal cells"))
+Club_summed <- df_summed %>% filter(cell_type_submain %in% c("Club cells"))
+Plasma_summed <- df_summed %>% filter(cell_type_submain %in% c("Plasma cells"))
+Gobelt_summed <- df_summed %>% filter(cell_type_submain %in% c("Gobelt cells"))
+mDCs_summed <- df_summed %>% filter(cell_type_submain %in% c("mDCs"))
+AT1_summed <- df_summed %>% filter(cell_type_submain %in% c("AT1"))
+CD4_summed <- df_summed %>% filter(cell_type_submain %in% c("CD4 Tcells"))
+Monocytes_summed <- df_summed %>% filter(cell_type_submain %in% c("Monocytes"))
+NK_summed <- df_summed %>% filter(cell_type_submain %in% c("NK cells"))
+B_summed <- df_summed %>% filter(cell_type_submain %in% c("B cells"))
+Smooth_summed <- df_summed %>% filter(cell_type_submain %in% c("Smooth Muscle cells"))
+Mast_summed <- df_summed %>% filter(cell_type_submain %in% c("Mast cells"))
+CD8_summed <- df_summed %>% filter(cell_type_submain %in% c("CD8 Tcells"))
+Neutrophils_summed <- df_summed %>% filter(cell_type_submain %in% c("Neutrophils"))
+Fibroblasts_summed <- df_summed %>% filter(cell_type_submain %in% c("Fibroblasts"))
+Endothelial_summed <- df_summed %>% filter(cell_type_submain %in% c("Endothelial cells"))
+pDCs_summed <- df_summed %>% filter(cell_type_submain %in% c("pDCs"))
+
+my_comparisons <- list(c("Control", "COVID"), c("COVID", "IPF"), c("Control", "IPF"))
+unique(df$new_submain)
+```
+
+```{r}
+get_plot <- function(data){
+   ggboxplot(data, x = "group", y = "gene", color = "group", add = "jitter") + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+    scale_colour_manual(values = consistentcolors[5:2]) +
+    stat_compare_means(comparisons = my_comparisons, label = "p.signif") + 
+    stat_compare_means(label.y=50) +
+    theme(legend.position = "none") + 
+    scale_x_discrete(limits = c("Control", "COVID", "IPF"))
+}
+```
+
+```{r}
+Ciliated_plot <- get_plot(Ciliated_summed) + labs(title="Ciliated", x =" ", y = " ") 
+AT2_plot <- get_plot(AT2_summed) + labs(title="AT2", x =" ", y = " ") 
+Macrophages_plot <- get_plot(Macrophages_summed) + labs(title="Macrophages", x =" ", y = " ") 
+Basal_plot <- get_plot(Basal_summed) + labs(title="Basal", x =" ", y = " ") 
+Club_plot <- get_plot(Club_summed) + labs(title="Club", x =" ", y = " ") 
+Plasma_plot <- get_plot(Plasma_summed) + labs(title="Plasma", x =" ", y = " ") 
+Gobelt_plot <- get_plot(Gobelt_summed) + labs(title="Gobelt", x =" ", y = " ") 
+mDCs_plot <- get_plot(mDCs_summed) + labs(title="mDCs", x =" ", y = " ") 
+AT1_plot <- get_plot(AT1_summed) + labs(title="AT1", x =" ", y = " ") 
+CD4_plot <- get_plot(CD4_summed) + labs(title="CD4", x =" ", y = " ") 
+Monocytes_plot <- get_plot(Monocytes_summed) + labs(title="Monocytes", x =" ", y = " ") 
+NK_plot <- get_plot(NK_summed) + labs(title="NK", x =" ", y = " ") 
+B_plot <- get_plot(B_summed) + labs(title="B", x =" ", y = " ") 
+Smooth_plot <- get_plot(Smooth_summed) + labs(title="Smooth", x =" ", y = " ") 
+Mast_plot <- get_plot(Mast_summed) + labs(title="Mast", x =" ", y = " ") 
+CD8_plot <- get_plot(CD8_summed) + labs(title="CD8", x =" ", y = " ") 
+Neutrophils_plot <- get_plot(Neutrophils_summed) + labs(title="Neutrophils", x =" ", y = " ") 
+Fibroblasts_plot <- get_plot(Fibroblasts_summed) + labs(title="Fibroblasts", x =" ", y = " ") 
+Endothelial_plot <- get_plot(Endothelial_summed) + labs(title="Endothelial", x =" ", y = " ") 
+pDCs_plot <- get_plot(Endothelial_summed) + labs(title="pDCs", x =" ", y = " ") 
+
+
+```
+
+```{r}
+plot_arrange <- ggarrange(AT2_plot, Monocytes_plot, Endothelial_plot, Macrophages_plot, NK_plot, 
+                          Ciliated_plot, Club_plot, mDCs_plot, B_plot, AT1_plot,
+                          Fibroblasts_plot, Basal_plot, Plasma_plot, Gobelt_plot, CD4_plot,
+                          Mast_plot, Smooth_plot, CD8_plot, pDCs_plot, Neutrophils_plot,
+                          ncol =5, nrow = 4)
+
+ggsave(plot = plot_arrange, here("final/figure/Boxplot_expression.pdf"), height = 18, width = 10)
+```
+

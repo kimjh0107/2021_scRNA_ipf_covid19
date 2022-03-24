@@ -1,0 +1,194 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(here)
+library(Seurat)
+library(tidyverse)
+library(ggrepel)
+library(ggplot2)
+library(dplyr)
+library(reshape2)
+```
+
+```{r}
+markers_up <- read_csv(here("final/csv/tcell_upregulated_covid_min0.csv"))
+markers_down <- read_csv(here("final/csv/tcell_downregulated_covid_min0.csv"))
+
+markers_up$Diagnosis <- "COVID-19"
+markers_down$Diagnosis <- "Control"
+markers <- rbind(markers_up, markers_down)
+
+markers$p_val_adj <- as.numeric(markers$p_val_adj)
+markers$avg_log2FC <- as.numeric(markers$avg_log2FC)
+markers
+
+markers <- markers %>% mutate(avg_logFC_new = ifelse(Diagnosis == 'COVID-19',avg_log2FC,-avg_log2FC))
+markers <- markers[c(order(-markers$avg_logFC_new)), ]
+
+
+markers$color = '#418bbe'
+markers$group = 'Other'
+markers$label = markers$gene
+rownames(markers) <- markers$gene
+
+group_up = markers %>% filter(., Diagnosis == 'COVID-19' & p_val_adj < 0.05 )
+group_down = markers %>% filter(.,Diagnosis == 'Control' & p_val_adj < 0.05 )
+
+print(dim(group_up))
+print(dim(group_down))
+```
+```{r}
+tcell_up <- read_csv(here("final/csv/tcell_upregulated_covid_min0.csv"))
+tcell_up <- tcell_up %>% filter(p_val_adj < 0.05)
+tcell_down <- read_csv(here("final/csv/tcell_downregulated_covid_min0.csv"))
+tcell_down <- tcell_down %>% filter(p_val_adj < 0.05)
+
+
+markers[intersect(group_up$gene,tcell_up$gene),'color'] = '#d53d49'
+#markers[intersect(group_up$gene,tcell_up$gene),'Diagnosis'] = 'COVID-19'
+#markers[intersect(group_down$gene,tcell_down$gene),'color'] = '#418bbe'
+#markers[intersect(group_down$gene,tcell_down$gene),'Diagnosis'] = 'Control'
+
+```
+
+```{r}
+merge_up <- read_csv(here("final_before/DGE/tcell/tcell_upregulated_merge.csv"))
+merge_down <- read_csv(here("final_before/DGE/tcell/tcell_downregulated_merge.csv"))
+
+merge_up_genelist <- merge_up$gene
+merge_down_genelist <- merge_down$gene
+merge_geneset <- c(merge_up_genelist, merge_down_genelist)
+my_gene_list = merge_geneset
+```
+
+```{r}
+markers$p_val_adj = -log10(markers$p_val_adj)
+markers <- markers[c(order(-markers$avg_logFC_new)),]
+
+markers[!markers$gene %in% c(my_gene_list),'label'] = ''
+markers
+
+my_not_gene_list = c()
+markers$Diagnosis = factor(markers$Diagnosis,labels = c('COVID-19','Control'),levels =c('COVID-19','Control'))
+my_not_gene_list = c()
+markers[!markers$gene %in% c(my_gene_list),'label'] = ''
+markers = with(markers, markers[order(Diagnosis),])
+markers
+```
+
+```{r}
+p2 <- ggplot(markers, aes(avg_logFC_new, p_val_adj, color = Diagnosis, order = Diagnosis)) + geom_point(size = 0.8) + 
+  labs(x = "logFC", y = "-Log10(p.adjust") + theme(plot.title = element_text(hjust = 0.5)) + 
+        theme(axis.text = element_text(size = 5),axis.title = element_text(size = 5),
+            axis.title.x = element_text(margin = unit(c(4, 0, 0, 0), "mm")),
+            axis.title.y = element_text(margin = unit(c(0, 4, 0, 0), "mm")),
+            axis.line = element_line(colour = 'black',size = 0.4),
+            panel.grid.minor = element_blank(),
+            panel.background = element_blank(),
+            panel.grid.major = element_line(colour = 'grey',size=0.4,linetype = 2),
+            axis.ticks = element_line(colour = 'black',size = 0.4),
+            legend.title = element_blank(),legend.text = element_text(size = 5,family = 'sans',face='plain'),
+            legend.position = 'top',legend.key.size = unit(1.5, 'lines')) + theme_classic() + 
+  scale_color_manual(values = setNames(markers$color, markers$Diagnosis)) #+ 
+  #geom_text_repel(aes(label = markers$label), verbose = T, seed = 123, max.time = 1, max.iter = Inf, size = 3) + NoLegend()
+p2 <- p2 + geom_text_repel(aes(label = markers$label), max.overlaps = 200, , color = "black", size = 2, box.padding = 0.25, label.padding = 0.25,point.padding = 1e-06, segment.color = "grey80", verbose = T, max.iter = Inf, max.time = 1) + NoLegend() + labs(title = "COVID-19 DGE")
+p2
+ggsave(here("final/figure/Volcano_plot_covid.pdf"))
+
+```
+
+
+
+
+```{r}
+markers_up <- read_csv(here("final/csv/tcell_upregulated_ipf_min0.csv"))
+markers_down <- read_csv(here("final/csv/tcell_downregulated_ipf_min0.csv"))
+
+markers_up$Diagnosis <- "IPF"
+markers_down$Diagnosis <- "Control"
+markers <- rbind(markers_up, markers_down)
+
+markers$p_val_adj <- as.numeric(markers$p_val_adj)
+markers$avg_log2FC <- as.numeric(markers$avg_log2FC)
+markers
+
+markers <- markers %>% mutate(avg_logFC_new = ifelse(Diagnosis == 'IPF',avg_log2FC,-avg_log2FC))
+markers <- markers[c(order(-markers$avg_logFC_new)), ]
+
+
+markers$color = '#418bbe'
+markers$group = 'Other'
+markers$label = markers$gene
+rownames(markers) <- markers$gene
+
+group_up = markers %>% filter(., Diagnosis == 'IPF' & p_val_adj < 0.05 )
+group_down = markers %>% filter(.,Diagnosis == 'Control' & p_val_adj < 0.05 )
+
+print(dim(group_up))
+print(dim(group_down))
+```
+```{r}
+tcell_up <- read_csv(here("final/csv/tcell_upregulated_ipf_min0.csv"))
+tcell_up <- tcell_up %>% filter(p_val_adj < 0.05)
+tcell_down <- read_csv(here("final/csv/tcell_downregulated_ipf_min0.csv"))
+tcell_down <- tcell_down %>% filter(p_val_adj < 0.05)
+
+
+markers[intersect(group_up$gene,tcell_up$gene),'color'] = '#d53d49'
+#markers[intersect(group_up$gene,tcell_up$gene),'Diagnosis'] = 'COVID-19'
+#markers[intersect(group_down$gene,tcell_down$gene),'color'] = '#418bbe'
+#markers[intersect(group_down$gene,tcell_down$gene),'Diagnosis'] = 'Control'
+
+```
+
+```{r}
+merge_up <- read_csv(here("final_before/DGE/tcell/tcell_upregulated_merge.csv"))
+merge_down <- read_csv(here("final_before/DGE/tcell/tcell_downregulated_merge.csv"))
+
+merge_up_genelist <- merge_up$gene
+merge_down_genelist <- merge_down$gene
+merge_geneset <- c(merge_up_genelist, merge_down_genelist)
+my_gene_list = merge_geneset
+```
+
+```{r}
+markers$p_val_adj = -log10(markers$p_val_adj)
+markers <- markers[c(order(-markers$avg_logFC_new)),]
+
+markers[!markers$gene %in% c(my_gene_list),'label'] = ''
+markers
+
+my_not_gene_list = c()
+markers$Diagnosis = factor(markers$Diagnosis,labels = c('IPF','Control'),levels =c('IPF','Control'))
+my_not_gene_list = c()
+markers[!markers$gene %in% c(my_gene_list),'label'] = ''
+markers = with(markers, markers[order(Diagnosis),])
+markers
+```
+
+
+```{r}
+p2 <- ggplot(markers, aes(avg_logFC_new, p_val_adj, color = Diagnosis, order = Diagnosis)) + geom_point(size = 0.8) + 
+  labs(x = "logFC", y = "-Log10(p.adjust") + theme(plot.title = element_text(hjust = 0.5)) + 
+        theme(axis.text = element_text(size = 5),axis.title = element_text(size = 5),
+            axis.title.x = element_text(margin = unit(c(4, 0, 0, 0), "mm")),
+            axis.title.y = element_text(margin = unit(c(0, 4, 0, 0), "mm")),
+            axis.line = element_line(colour = 'black',size = 0.4),
+            panel.grid.minor = element_blank(),
+            panel.background = element_blank(),
+            panel.grid.major = element_line(colour = 'grey',size=0.4,linetype = 2),
+            axis.ticks = element_line(colour = 'black',size = 0.4),
+            legend.title = element_blank(),legend.text = element_text(size = 5,family = 'sans',face='plain'),
+            legend.position = 'top',legend.key.size = unit(1.5, 'lines')) + theme_classic() + 
+  scale_color_manual(values = setNames(markers$color, markers$Diagnosis)) 
+
+
+p2 <- p2 + geom_text_repel(aes(label = markers$label), max.overlaps = 200, , color = "black", size = 2, box.padding = 0.25, label.padding = 0.25,point.padding = 1e-06, segment.color = "grey80", verbose = T, max.iter = Inf, max.time = 1) + NoLegend() + labs(title = "IPF DGE")
+p2
+#ggsave(here("final/figure/Volcano_plot_ipf.pdf"))
+
+```
+
