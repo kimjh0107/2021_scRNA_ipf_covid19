@@ -1,0 +1,18 @@
+library(here)
+library(Seurat)
+library(tidyverse)
+
+df <- readRDS(here("EMT/RDS/snRNA.RDS"))
+df <- subset(df, subset = Diagnosis %in% c("Control", "COVID-19"))
+saveRDS(df, here("EMT/RDS/snRNA_subset.RDS"))
+
+unique(df$cell_type_submain)
+subset <- subset(df, subset = cell_type_submain %in% c("AT1", "AT2", "Fibroblasts"))
+subset <- ScaleData(object = subset)
+subset <- RunPCA(object = subset)
+subset <- FindNeighbors(subset, dims = 1:30)
+subset <- FindClusters(subset, resolution = 0.6)
+subset <- RunUMAP(object = subset, dims = 1:30)
+saveRDS(subset, file = here("EMT/RDS/snRNA_EMT.RDS"))
+DimPlot(subset, group.by = "cell_type_submain", label = T, repel = T) + NoLegend()
+ggsave(here("EMT/figure/snRNA_DimPlot_emt_celltype.pdf"), width = 7, height = 5)

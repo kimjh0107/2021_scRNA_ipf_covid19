@@ -1,0 +1,55 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(here)
+library(Seurat)
+library(tidyverse)
+library(CellChat)
+
+
+control <- readRDS(here("EMT/RDS/cellchat_EMT_control.RDS"))
+covid <- readRDS(here("EMT/RDS/cellchat_EMT_covid.RDS"))
+ipf <- readRDS(here("EMT/RDS/cellchat_EMT_ipf.RDS"))
+```
+
+```{r}
+object <- list(Control = control, COVID = covid)
+cellchat <- mergeCellChat(object, add.names = names(object))
+
+p1 <- netVisual_diffInteraction(cellchat, weight.scale = T)
+p2 <- rankNet(cellchat, mode = "comparison", stacked = T, do.stat = TRUE)
+p1
+p2
+
+
+object <- list(Control = control, IPF = ipf)
+cellchat <- mergeCellChat(object, add.names = names(object))
+
+p1 <- netVisual_diffInteraction(cellchat, weight.scale = T)
+p2 <- rankNet(cellchat, mode = "comparison", stacked = T, do.stat = TRUE)
+p1
+p2
+
+
+object <- list(COVID = covid, IPF = ipf)
+cellchat <- mergeCellChat(object, add.names = names(object))
+
+p1 <- netVisual_diffInteraction(cellchat, weight.scale = T)
+p2 <- rankNet(cellchat, mode = "comparison", cutoff.pvalue = 0.05, stacked = T, do.stat = TRUE, x.rotation = 90, do.flip = TRUE)
+p1
+p2
+```
+
+```{r}
+
+```
+
+
+
+
+
+
+

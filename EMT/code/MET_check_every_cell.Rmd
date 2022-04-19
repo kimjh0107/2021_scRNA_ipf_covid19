@@ -1,0 +1,243 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(here)
+library(Seurat)
+library(tidyverse)
+library(ggpubr)
+
+#### EMT  fibro ####
+df <- readRDS(here("EMT/RDS/fibro.RDS"))
+DefaultAssay(df) <- "RNA"
+```
+
+```{r}
+met_1 <- c("FGF7")
+met_2 <- c("FGF10")
+met_3 <- c("HGF")
+met_4 <- c("HOXA5")
+met_5 <- c("MET")
+met_6 <- c("MIR875")
+met_7 <- c("TNC")
+met_8 <- c("WNT2B")
+met_9 <- c("WNT5A")
+met_10 <- c("FGFR1")
+```
+
+```{r}
+# Boxplot - MET gene expression level 
+# 1
+gene_list <- met_1
+
+
+my_comparisons <- list(c("Control", "COVID"), c("COVID", "IPF"), c("Control", "IPF"))
+exp_data <- FetchData(object = df, vars = c(gene_list,"Diagnosis","Diagnosis_tag2", "new_submain"))
+
+
+gene_data <- exp_data %>% 
+  pivot_longer(FGF7, names_to='genes', values_to = 'value') %>% 
+  group_by(Diagnosis, Diagnosis_tag2, new_submain) %>%
+  summarize(exp_avg = mean(value)) 
+
+p1 <- gene_data %>%
+  ggplot(aes(x = Diagnosis, y = exp_avg), color = "Diagnosis") + 
+  geom_boxplot() + 
+  geom_jitter() + 
+  facet_wrap(new_submain ~. ) + 
+  theme_bw() + 
+  labs(title = 'FGF7 gene expressions') + 
+  stat_compare_means(comparisons = my_comparisons, label = "p.signif") +theme_classic()
+
+# 2
+gene_list <- met_2
+
+
+my_comparisons <- list(c("Control", "COVID"), c("COVID", "IPF"), c("Control", "IPF"))
+exp_data <- FetchData(object = df, vars = c(gene_list,"Diagnosis","Diagnosis_tag2", "new_submain"))
+
+
+gene_data <- exp_data %>% 
+  pivot_longer(FGF10, names_to='genes', values_to = 'value') %>% 
+  group_by(Diagnosis, Diagnosis_tag2, new_submain) %>%
+  summarize(exp_avg = mean(value)) 
+
+p2 <- gene_data %>%
+  ggplot(aes(x = Diagnosis, y = exp_avg), color = "Diagnosis") + 
+  geom_boxplot() + 
+  geom_jitter() + 
+  facet_wrap(new_submain ~. ) + 
+  theme_bw() + 
+  labs(title = 'FGF10 gene expressions') + 
+  stat_compare_means(comparisons = my_comparisons, label = "p.signif") +theme_classic()
+
+# 3
+gene_list <- met_3
+
+
+my_comparisons <- list(c("Control", "COVID"), c("COVID", "IPF"), c("Control", "IPF"))
+exp_data <- FetchData(object = df, vars = c(gene_list,"Diagnosis","Diagnosis_tag2", "new_submain"))
+
+
+gene_data <- exp_data %>% 
+  pivot_longer(HGF, names_to='genes', values_to = 'value') %>% 
+  group_by(Diagnosis, Diagnosis_tag2, new_submain) %>%
+  summarize(exp_avg = mean(value)) 
+
+p3 <- gene_data %>%
+  ggplot(aes(x = Diagnosis, y = exp_avg), color = "Diagnosis") + 
+  geom_boxplot() + 
+  geom_jitter() + 
+  facet_wrap(new_submain ~. ) + 
+  theme_bw() + 
+  labs(title = 'HGF gene expressions') + 
+  stat_compare_means(comparisons = my_comparisons, label = "p.signif") +theme_classic()
+
+
+# 4 
+gene_list <- met_4
+
+my_comparisons <- list(c("Control", "COVID"), c("COVID", "IPF"), c("Control", "IPF"))
+exp_data <- FetchData(object = df, vars = c(gene_list,"Diagnosis","Diagnosis_tag2", "new_submain"))
+
+
+gene_data <- exp_data %>% 
+  pivot_longer(HOXA5, names_to='genes', values_to = 'value') %>% 
+  group_by(Diagnosis, Diagnosis_tag2, new_submain) %>%
+  summarize(exp_avg = mean(value)) 
+
+p4 <- gene_data %>%
+  ggplot(aes(x = Diagnosis, y = exp_avg), color = "Diagnosis") + 
+  geom_boxplot() + 
+  geom_jitter() + 
+  facet_wrap(new_submain ~. ) + 
+  theme_bw() + 
+  labs(title = 'HOXA5 gene expressions') + 
+  stat_compare_means(comparisons = my_comparisons, label = "p.signif") +theme_classic()
+
+
+# 5
+gene_list <- met_5
+
+my_comparisons <- list(c("Control", "COVID"), c("COVID", "IPF"), c("Control", "IPF"))
+exp_data <- FetchData(object = df, vars = c(gene_list,"Diagnosis","Diagnosis_tag2", "new_submain"))
+
+
+gene_data <- exp_data %>% 
+  pivot_longer(MET, names_to='genes', values_to = 'value') %>% 
+  group_by(Diagnosis, Diagnosis_tag2, new_submain) %>%
+  summarize(exp_avg = mean(value)) 
+
+p5 <- gene_data %>%
+  ggplot(aes(x = Diagnosis, y = exp_avg), color = "Diagnosis") + 
+  geom_boxplot() + 
+  geom_jitter() + 
+  facet_wrap(new_submain ~. ) + 
+  theme_bw() + 
+  labs(title = 'MET gene expressions') + 
+  stat_compare_means(comparisons = my_comparisons, label = "p.signif") +theme_classic()
+
+
+
+# 7
+gene_list <- met_7
+
+my_comparisons <- list(c("Control", "COVID"), c("COVID", "IPF"), c("Control", "IPF"))
+exp_data <- FetchData(object = df, vars = c(gene_list,"Diagnosis","Diagnosis_tag2", "new_submain"))
+
+
+gene_data <- exp_data %>% 
+  pivot_longer(TNC, names_to='genes', values_to = 'value') %>% 
+  group_by(Diagnosis, Diagnosis_tag2, new_submain) %>%
+  summarize(exp_avg = mean(value)) 
+
+p7 <- gene_data %>%
+  ggplot(aes(x = Diagnosis, y = exp_avg), color = "Diagnosis") + 
+  geom_boxplot() + 
+  geom_jitter() + 
+  facet_wrap(new_submain ~. ) + 
+  theme_bw() + 
+  labs(title = 'TNC gene expressions') + 
+  stat_compare_means(comparisons = my_comparisons, label = "p.signif") +theme_classic()
+
+
+# 8
+gene_list <- met_8
+
+my_comparisons <- list(c("Control", "COVID"), c("COVID", "IPF"), c("Control", "IPF"))
+exp_data <- FetchData(object = df, vars = c(gene_list,"Diagnosis","Diagnosis_tag2", "new_submain"))
+
+
+gene_data <- exp_data %>% 
+  pivot_longer(WNT2B, names_to='genes', values_to = 'value') %>% 
+  group_by(Diagnosis, Diagnosis_tag2, new_submain) %>%
+  summarize(exp_avg = mean(value)) 
+
+p8 <- gene_data %>%
+  ggplot(aes(x = Diagnosis, y = exp_avg), color = "Diagnosis") + 
+  geom_boxplot() + 
+  geom_jitter() + 
+  facet_wrap(new_submain ~. ) + 
+  theme_bw() + 
+  labs(title = 'WNT2B gene expressions') + 
+  stat_compare_means(comparisons = my_comparisons, label = "p.signif") +theme_classic()
+
+
+# 9
+gene_list <- met_9
+
+my_comparisons <- list(c("Control", "COVID"), c("COVID", "IPF"), c("Control", "IPF"))
+exp_data <- FetchData(object = df, vars = c(gene_list,"Diagnosis","Diagnosis_tag2", "new_submain"))
+
+
+gene_data <- exp_data %>% 
+  pivot_longer(WNT5A, names_to='genes', values_to = 'value') %>% 
+  group_by(Diagnosis, Diagnosis_tag2, new_submain) %>%
+  summarize(exp_avg = mean(value)) 
+
+p9 <- gene_data %>%
+  ggplot(aes(x = Diagnosis, y = exp_avg), color = "Diagnosis") + 
+  geom_boxplot() + 
+  geom_jitter() + 
+  facet_wrap(new_submain ~. ) + 
+  theme_bw() + 
+  labs(title = 'WNT5A gene expressions') + 
+  stat_compare_means(comparisons = my_comparisons, label = "p.signif") +theme_classic()
+
+
+# 10
+gene_list <- met_10
+
+my_comparisons <- list(c("Control", "COVID"), c("COVID", "IPF"), c("Control", "IPF"))
+exp_data <- FetchData(object = df, vars = c(gene_list,"Diagnosis","Diagnosis_tag2", "new_submain"))
+
+
+gene_data <- exp_data %>% 
+  pivot_longer(FGFR1, names_to='genes', values_to = 'value') %>% 
+  group_by(Diagnosis, Diagnosis_tag2, new_submain) %>%
+  summarize(exp_avg = mean(value)) 
+
+p10 <- gene_data %>%
+  ggplot(aes(x = Diagnosis, y = exp_avg), color = "Diagnosis") + 
+  geom_boxplot() + 
+  geom_jitter() + 
+  facet_wrap(new_submain ~. ) + 
+  theme_bw() + 
+  labs(title = 'FGFR1 gene expressions') + 
+  stat_compare_means(comparisons = my_comparisons, label = "p.signif") +theme_classic()
+
+```
+```{r}
+p1
+p2
+p3
+p4
+p5
+p7
+p8
+p9
+p10
+```
+

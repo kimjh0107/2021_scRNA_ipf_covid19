@@ -1,0 +1,10 @@
+genes
+VIM
+CDH2 
+SNAI1 
+SNAI2 
+TWIST1 
+FN1 
+MMP2 
+MMP3 
+MMP9 

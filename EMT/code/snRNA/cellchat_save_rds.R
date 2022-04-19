@@ -1,0 +1,78 @@
+library(here)
+library(Seurat)
+library(tidyverse)
+library(CellChat)
+
+df <- readRDS(here("EMT/RDS/snRNA_EMT.RDS"))
+
+DefaultAssay(df) <- "RNA"
+control <- subset(df, subset = Diagnosis == "Control")
+covid <- subset(df, subset = Diagnosis == "COVID-19")
+
+#### subset by each diagnosis
+# control
+data_input <- GetAssayData(control, assay = "RNA", slot = "data")
+Idents(control) <- "cell_type_submain"
+labels <- Idents(control)
+meta <- data.frame(labels = labels, row.names = names(labels))
+cellchat_control <- createCellChat(object = data_input, meta = meta, group.by = "labels")
+
+# covid
+data_input <- GetAssayData(covid, assay = "RNA", slot = "data")
+Idents(covid) <- "cell_type_submain"
+labels <- Idents(covid)
+meta <- data.frame(labels = labels, row.names = names(labels))
+cellchat_covid <- createCellChat(object = data_input, meta = meta, group.by = "labels")
+
+
+
+
+#### Add meta 
+# control
+data_input <- GetAssayData(control, assay = "RNA", slot = "data")
+Idents(control) <- "cell_type_submain"
+labels <- Idents(control)
+meta <- data.frame(labels = labels, row.names = names(labels))
+cellchat_control <- createCellChat(object = data_input, meta = meta, group.by = "labels")
+
+# covid
+data_input <- GetAssayData(covid, assay = "RNA", slot = "data")
+Idents(covid) <- "cell_type_submain"
+labels <- Idents(covid)
+meta <- data.frame(labels = labels, row.names = names(labels))
+cellchat_covid <- createCellChat(object = data_input, meta = meta, group.by = "labels")
+
+
+# Calculate the aggregated cell-cell communication network
+CellChatDB <- CellChatDB.human
+showDatabaseCategory(CellChatDB)
+CellChatDB.use <- subsetDB(CellChatDB, search = "Secreted Signaling") # use Secreted Signaling
+
+cellchat_control@DB <- CellChatDB.use
+cellchat_covid@DB <- CellChatDB.use
+
+cellchat_control <- subsetData(cellchat_control) 
+cellchat_covid <- subsetData(cellchat_covid) 
+
+cellchat_control <- identifyOverExpressedGenes(cellchat_control)
+cellchat_covid <- identifyOverExpressedGenes(cellchat_covid)
+
+cellchat_control <- identifyOverExpressedInteractions(cellchat_control)
+cellchat_covid <- identifyOverExpressedInteractions(cellchat_covid)
+
+cellchat_control <- projectData(cellchat_control, PPI.human)
+cellchat_covid <- projectData(cellchat_covid, PPI.human)
+
+cellchat_control <- computeCommunProb(cellchat_control)
+cellchat_covid <- computeCommunProb(cellchat_covid)
+
+cellchat_control <- filterCommunication(cellchat_control, min.cells = 100)
+cellchat_covid <- filterCommunication(cellchat_covid, min.cells = 100)
+
+cellchat_control <- computeCommunProbPathway(cellchat_control)
+cellchat_covid <- computeCommunProbPathway(cellchat_covid)
+
+cellchat_control <- aggregateNet(cellchat_control)
+saveRDS(cellchat_control, here("EMT/RDS/snRNA_cellchat_emt_control.RDS"))
+cellchat_covid <- aggregateNet(cellchat_covid)
+saveRDS(cellchat_covid, here("EMT/RDS/snRNA_cellchat_emt_covid.RDS"))

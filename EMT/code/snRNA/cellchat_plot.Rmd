@@ -1,0 +1,27 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(here)
+library(Seurat)  
+library(tidyverse)
+library(CellChat)
+
+
+control <- readRDS(here("EMT/RDS/snRNA_cellchat_emt_control.RDS"))
+covid <- readRDS(here("EMT/RDS/snRNA_cellchat_emt_covid.RDS"))
+
+object_list <- list(Control = control, COVID = covid)
+control_covid <- mergeCellChat(object_list, add.names = names(object_list))
+```
+
+```{r}
+netVisual_diffInteraction(control_covid, weight.scale = T)
+```
+```{r}
+rankNet(control_covid, mode = "comparison", cutoff.pvalue = 0.05, stacked = T, do.stat = TRUE, x.rotation = 90, do.flip = TRUE)
+
+```
+
