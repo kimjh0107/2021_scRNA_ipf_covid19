@@ -1,5 +1,4 @@
-# 2021_scRNA_ipf_covid19
-# Discovery of novel genes of macrophages related to lung fibrosis pathways based on single-cell RNA sequencing
+## Discovery of novel genes of macrophages related to lung fibrosis pathways based on single-cell RNA sequencing
 
 Rationale: In severe Coronavirus Disease 2019 (COVID-19), the infected lung becomes fibrosis. Macrophages have been identified as pathogenic fibrotic response regulators. This study aims to discover lung fibrosis related genes in COVID-19 by using single-cell RNA sequencing (scRNA-seq). 
 
