@@ -1,5 +1,5 @@
 ## Discovery of novel genes of macrophages related to lung fibrosis pathways based on single-cell RNA sequencing
-<img width="1187" alt="271497967-57af8316-1c8c-4fe4-94f2-88243e1d74b2" src="https://github.com/kimjh0107/2021_scRNA_ipf_covid19/assets/83206535/3a101cfb-ff9c-4825-913a-2d573f866e02">
+[Gmail - ATS 2022_ Abstract Notification.pdf](https://github.com/kimjh0107/2021_scRNA_ipf_covid19/files/12883160/Gmail.-.ATS.2022_.Abstract.Notification.pdf)
 
 JongHyun Kim , MinDong Sung, Kyeong-Seob Jeong, Yu-Rand Park
 
